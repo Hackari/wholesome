@@ -30,14 +30,3 @@
 ## 🧍 Player Win Condition
 - Each player tracks their **card count**
 - When a player's **card count reaches 0**, they are declared a **winner**
-
----
-
-Possible follow-ups:
-1. Define the card validation function using this array model
-2. Implement zero-sum distribution logic for post-game economy
-3. Extend data model for multiplayer + tournament support
-
-HAND  
-ChadGPT  
-Replies to this chat will be posted as a reply to the announcement, which will be seen by everyone in the chat.
