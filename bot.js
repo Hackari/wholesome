@@ -10,6 +10,7 @@ bot.onText(/\/start/, (msg) => {
   const lobby = msg.chat.id;
   game = new Game(lobby, bot);
   bot.sendMessage(lobby, `Game started! Do /join to join!`);
+  game.join(msg);
 });
 
 bot.onText(/\/join/, (msg) => {
