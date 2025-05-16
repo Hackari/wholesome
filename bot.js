@@ -1,32 +1,42 @@
 const TelegramBot = require('node-telegram-bot-api');
-const Config = require('./Config');
-const Game = require('./Game');
+const config = require('./config.js');
+const Game = require('./Game.js');
 
-const bot = new TelegramBot(Config.token, { polling: true });
+const bot = new TelegramBot(config.token, { polling: true });
 
 let game = 0;
 
+// Start
 bot.onText(/\/start/, (msg) => {
-  const lobby = msg.chat.id;
-  game = new Game(lobby, bot);
-  bot.sendMessage(lobby, `Game started! Do /join to join!`);
-  game.join(msg);
+	const lobby = msg.chat.id;
+	game = new Game(lobby, bot);
+	bot.sendMessage(lobby, `Game started!`, {
+		reply_markup: { inline_keyboard: [[{ text: 'Join', callback_data: 'join_game' }]] }
+	});
+	game.join(msg);
 });
 
+// Handle callbacks
+bot.on('callback_query', (query) => {
+	const callback_data = query.data;
+	if (callback_data == "join_game") {
+game.join({from: query.from})} // scuffed
+	});
+
 bot.onText(/\/join/, (msg) => {
-  game.join(msg);
+	game.join(msg);
 })
 
 bot.onText(/hand/, (msg) => {
-  game.showHand(msg);
+	game.showHand(msg);
 })
 
 bot.onText(/sort/, (msg) => {
-  game.sortHand(msg);
+	game.sortHand(msg);
 })
 
 bot.onText(/status/, (msg) => {
-  game.showStatus(msg);
+	game.showStatus(msg);
 })
 
 // function startTurn(newTurn) {
