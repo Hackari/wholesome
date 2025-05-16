@@ -38,22 +38,22 @@ class Game {
         console.log(`Created a new game for ${MAX_PLAYERS} players.`);
     }
 
-    message(userId, msg) {
-        this.bot.sendMessage(userId, msg);
+    message(userId, text) {
+        this.bot.sendMessage(userId, text);
     }
 
-    broadcast(msg) {
+    broadcast(text) {
         for (let i = 0; i < this.playerCount; i++) {
             const player = this.players[i];
-            this.message(player.userId, msg);
+            this.message(player.userId, text);
         }
-        this.message(this.lobby, msg);
+        this.message(this.lobby, text);
     }
 
-    join(msg) {
-        const newPlayer = new Player(msg, this.playerCount, this.deckInit);
+    join(usr) {
+        const newPlayer = new Player(usr, this.playerCount, this.deckInit);
         this.players[this.playerCount] = newPlayer;
-        this.inversePlayers[this.playerCount] = msg.from.id;
+        this.inversePlayers[this.playerCount] = usr.id;
 
         if (newPlayer.first) {
             this.turn = this.playerCount;
@@ -71,32 +71,31 @@ class Game {
         }
     }
 
-    getPlayer(msg) {
-        const userId = msg.from.id;
-        const player = this.players[this.inversePlayers.indexOf(userId)];
+    getPlayer(usr) {
+        const player = this.players[this.inversePlayers.indexOf(usr.id)];
         return player;
     }
 
-    playerAction(msg, action) {
-        const player = this.getPlayer(msg);
+    playerAction(usr, action) {
+        const player = this.getPlayer(usr);
         const resultMsg = action(player)
         this.message(player.userId, resultMsg);
     }
 
-    showHand(msg) {
-        this.playerAction(msg, 
+    showHand(usr) {
+        this.playerAction(usr, 
             (player) => player.showHand()
         );
     }
 
-    sortHand(msg) {
-        this.playerAction(msg, 
+    sortHand(usr) {
+        this.playerAction(usr, 
             (player) => player.sortHand()
         );
     }
 
-    showStatus(msg) {
-        const player = this.getPlayer(msg);
+    showStatus(usr) {
+        const player = this.getPlayer(usr);
         let statusMsg = `Total players: ${this.playerCount}`
         statusMsg += `Current Round Type: ${ROUND_TYPES[this.currRoundType]}\n`;
         for (let i = 0; i < this.playerCount; i++) {
@@ -107,9 +106,9 @@ class Game {
         this.message(player.userId, statusMsg); 
     }
 
-    play(msg) {
-        const cardIndices = msg.text.split(' ').slice(1);
-        this.playerAction(msg,
+    play(usr, text) {
+        const cardIndices = text.split(' ').slice(1);
+        this.playerAction(usr,
             (player) => player.playCards(cardIndices, 
                 this.currRoundType, 
                 this.currSetType, 

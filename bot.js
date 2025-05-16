@@ -13,30 +13,31 @@ bot.onText(/\/start/, (msg) => {
 	bot.sendMessage(lobby, `Game started!`, {
 		reply_markup: { inline_keyboard: [[{ text: 'Join', callback_data: 'join_game' }]] }
 	});
-	game.join(msg);
+	game.join(msg.from);
 });
 
 // Handle callbacks
 bot.on('callback_query', (query) => {
 	const callback_data = query.data;
 	if (callback_data == "join_game") {
-game.join({from: query.from})} // scuffed
-	});
+		game.join(query.from)
+	}
+});
 
 bot.onText(/\/join/, (msg) => {
-	game.join(msg);
+	game.join(msg.from);
 })
 
 bot.onText(/hand/, (msg) => {
-	game.showHand(msg);
+	game.showHand(msg.from);
 })
 
 bot.onText(/sort/, (msg) => {
-	game.sortHand(msg);
+	game.sortHand(msg.from);
 })
 
 bot.onText(/status/, (msg) => {
-	game.showStatus(msg);
+	game.showStatus(msg.from);
 })
 
 // function startTurn(newTurn) {
