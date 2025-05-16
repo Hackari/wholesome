@@ -51,9 +51,7 @@ class Game {
     }
 
     join(msg) {
-        console.log(`Hello`);
         const newPlayer = new Player(msg, this.playerCount, this.deckInit);
-        console.log(`Hey`);
         this.players[this.playerCount] = newPlayer;
         this.inversePlayers[this.playerCount] = msg.from.id;
 
