@@ -3,9 +3,9 @@ const Card = require('./Card');
 const INVALID_ROUND = 4;
 
 class Player {
-    constructor(msg, turn, initDeck) {
-        this.userId = msg.from.id;
-        this.username = msg.from.username;
+    constructor(usr, turn, initDeck) {
+        this.userId = usr.id;
+        this.username = usr.username;
         this.turn = turn;
         this.comp = Card.compareBySuitThenValue;
 

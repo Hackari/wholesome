@@ -1,33 +1,59 @@
 const TelegramBot = require('node-telegram-bot-api');
-const Config = require('./Config');
-const Game = require('./Game');
+const config = require('./config.js');
+const Game = require('./Game.js');
 
-const bot = new TelegramBot(Config.token, { polling: true });
+const bot = new TelegramBot(config.token, { polling: true });
 
-let game = 0;
 
+// Start
 bot.onText(/\/start/, (msg) => {
-  const lobby = msg.chat.id;
-  game = new Game(lobby, bot);
-  bot.sendMessage(lobby, `Game started! Do /join to join!`);
-  game.join(msg);
+	const chatID = msg.chat.id;
+	if (msg.chat.type == 'private' || msg.chat.type == 'channel') {
+		bot.sendMessage(chatID, `Start the game in a group chat`);
+		return;
+	}
+	const game = new Game(chatID, bot);
+	bot.sendMessage(chatID, `Game started! 1/4\n- ${msg.from.username}`, {
+		reply_markup: {
+			inline_keyboard: [
+				[{ text: 'Join', callback_data: 'join_game' }]]
+		}
+	});
+	game.join(msg.from);
+});
+
+// Handle callbacks
+bot.on('callback_query', (query) => {
+	const callback_data = query.data;
+	const msg = query.message;
+	const game = Game.getGameByChatId(msg.chat.id);
+	if (callback_data == "join_game") {
+		game.join(query.from);
+		const opts = { chat_id: msg.chat.id, message_id: msg.message_id };
+		if (game.gameIsFull()) {
+			bot.editMessageText(`All players found.\nStarting game.`, opts);
+			bot.editMessageReplyMarkup({}, opts);
+		} else {
+			bot.editMessage(`${msg.text.substring(0, 14)}${game.playerCount}${msg.text.substring(14 + 1)}\n- ${query.from.username}`, opts);
+		}
+	}
 });
 
 bot.onText(/\/join/, (msg) => {
-  game.join(msg);
-})
+	Game.getGameByChatId(msg.chat.id).join(msg.from);
+});
 
 bot.onText(/hand/, (msg) => {
-  game.showHand(msg);
-})
+	Game.getGameByChatId(msg.chat.id).showHand(msg.from);
+});
 
 bot.onText(/sort/, (msg) => {
-  game.sortHand(msg);
-})
+	Game.getGameByChatId(msg.chat.id).sortHand(msg.from);
+});
 
 bot.onText(/status/, (msg) => {
-  game.showStatus(msg);
-})
+	Game.getGameByChatId(msg.chat.id).showStatus(msg.from);
+});
 
 // function startTurn(newTurn) {
 //   const playerId = playerLookup[turn];
