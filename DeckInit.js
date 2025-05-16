@@ -1,11 +1,10 @@
 const Card = require('./Card'); 
 
-class Deck {
+class DeckInit {
     constructor() {
-        this.deck = this.init();  // Initialize the deck when a new object is created
+        this.deck = this.init(); 
     }
 
-    // Method to initialize the deck with 52 cards
     init() {
         const deck = [];
         for (let i = 0; i < 52; i++) {
@@ -14,11 +13,10 @@ class Deck {
         return deck;
     }
 
-    // Method to shuffle the deck using Fisher-Yates algorithm
     shuffle() {
         for (let i = this.deck.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]]; // Swap the elements
+            [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
         }
         return this.deck;
     }
@@ -28,4 +26,4 @@ class Deck {
     }
 }
 
-module.exports = Deck;
+module.exports = DeckInit;

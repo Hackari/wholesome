@@ -1,45 +1,102 @@
 const Card = require('./Card'); 
 
+const INVALID_ROUND = 4;
+
 class Player {
-    constructor(userId, gameId, username, curr_deck) {
-        this.userId = userId;
-        this.gameId = gameId;
-        this.username = username;
+    constructor(msg, turn, initDeck) {
+        this.userId = msg.from.id;
+        this.username = msg.from.username;
+        this.turn = turn;
         this.comp = Card.compareBySuitThenValue;
 
-        const startIdx = gameId * 13;
+        const startIdx = turn * 13;
         const endIdx = startIdx + 13;
-        this.cards = curr_deck.slice(startIdx, endIdx).sort(this.comp); 
+        this.hand = initDeck.slice(startIdx, endIdx).sort(this.comp); 
+
         this.first = false;
-        const firstCard = this.cards[0];
+        const firstCard = this.hand[0];
         if (firstCard.isCard(0)) {
             this.first = true;
         }
     }
 
-    // Method to display the player's hand
-    showCards() {
+    showHand() {
         let cardList = ""
-        const currCards = this.cards.sort(this.comp);
-        for (let i = 0; i < currCards.length; i++) {
-            cardList += `${i + 1}: ${currCards[i]}\n`
+        const hand = this.hand;
+        for (let i = 0; i < this.hand.length; i++) {
+            cardList += `${i + 1}: ${this.hand[i]}\n`
         }
         return cardList;
     }
 
-    swapSort() {
+    sortHand() {
+        let sortMsg = "";
         if (this.comp == Card.compareBySuitThenValue) {
             this.comp = Card.compareByValueThenSuit;
-            return "Sorting by Value, then by Suit";
+            sortMsg += "Sorting by Value, then by Suit\n";
         } else {
             this.comp = Card.compareBySuitThenValue;
-            return "Sorting by Suit, then by Value";
+
+            sortMsg += "Sorting by Suit, then by Value\n";
+        }
+        this.hand.sort(this.comp);
+        sortMsg += this.showHand();
+        return sortMsg;
+    }
+
+    getCardCount() {
+        return this.hand.length;
+    }
+
+    removeCards(cardIndices) {
+        for (let i = 0; i < cardIndices.length(); i++) {
+            cardIndex = cardIndices[i] -1;
+            this.cards.splice(card - 1, 1);
         }
     }
 
-    // Method to check the number of cards the player has
-    getCardCount() {
-        return this.cards.length;
+    playCards(cardIndices, currRoundType, currSetType, high) {
+        for (let i = 0; i < cardIndices.length(); i++) {
+            cardIndex = cardIndices[i]
+            if (0 >= cardIndex || cardIndex > this.getCardCount()) {
+                // throw error
+                return;
+            }
+        }
+
+        playedRoundType = INVALID_ROUND;
+
+        const selectedCards = cardIndices.map(cardIndex => this.hand[cardIndex - 1]);
+
+        switch (cardIndices.length) {
+            case 1:
+                playerMove = new Single(...selectedCards);
+                playedRoundType = Game.SINGLE;
+                break;
+            case 2:
+                playerMove = new Pair(...selectedCards);
+                playedRoundType = Game.PAIR;
+                break;
+            case 5:
+                playerMove = new Set(...selectedCards);
+                playedRoundType = Game.SET;
+                break;
+            default:
+                // invalid amount of cards
+                return;
+        }
+
+        if (currRoundType != playedRoundType) {
+            // ask for cards again
+            return;
+        }
+        if (!playerMove.canPlay(currSetType, high)) {
+            // ask for cards again
+            return;
+        }
+
+        this.removeCards(cardIndices);
+        return playerMove;
     }
 
     getStatus() {
@@ -47,21 +104,7 @@ class Player {
         if (this.first) {
             marker = "!";
         }
-        return `${marker}${this.gameId + 1}: ${this.username} (${this.getCardCount()} card(s) left)`;
-    }
-
-    canPlay(card, high) {
-        if (card > 0 && card <= this.getCardCount()) {
-            const cardToPlay = this.cards[card - 1];
-            return cardToPlay.number >= high;
-        }
-        return false;
-    }
-
-    play(card) {
-        const cardToPlay = this.cards[card - 1];
-        this.cards.splice(card - 1, 1);
-        return cardToPlay;
+        return `${marker}${this.turn + 1}: ${this.username} (${this.getCardCount()} card(s) left)`;
     }
 }
 
