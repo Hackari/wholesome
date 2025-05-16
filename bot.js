@@ -1,39 +1,14 @@
 const TelegramBot = require('node-telegram-bot-api');
 const Config = require('./Config');
 const Game = require('./Game');
-const MAX_PLAYERS = 1;
+
 const bot = new TelegramBot(Config.token, { polling: true });
-// const ROUND_TYPES = ['Single', 'Pair', 'Set', 'Any'];
-// const SET_TYPES = ['Straight', 'Flush', 'Full House', 'Straight Flush', 'Royal Flush'];
-// curr_deck = new DeckInit();
-// playerLookup = [];
-// players = [];
-// end = [];
-// finishedCount = 0;
-// player_count = 0;
-// currRoundType = 0;
-// turn = MAX_PLAYERS;
-// high = 0;
 
 let game = 0;
 
-// function getPlayer(msg) {
-//   const userId = msg.from.id;
-//   const player = players[playerLookup.indexOf(userId)];
-//   return player;
-// }
-
-// Command to start a game
 bot.onText(/\/start/, (msg) => {
   const lobby = msg.chat.id;
   game = new Game(lobby, bot);
-    // curr_deck = new Deck();
-    // currRoundType = 3;
-    // high = 0;
-    // curr_deck.shuffle(); 
-    // player_count = 0;
-    // end = [false, false, false, false];
-    // finishedCount = 0;
   bot.sendMessage(lobby, `Game started! Do /join to join!`);
 });
 
@@ -52,18 +27,6 @@ bot.onText(/sort/, (msg) => {
 bot.onText(/status/, (msg) => {
   game.showStatus(msg);
 })
-
-// bot.onText(/status/, (msg) => {
-//   const chatId = msg.chat.id;
-//   let statusMsg = `Total players: ${player_count}\n`
-//   statusMsg += `Current Round Type: ${ROUND_TYPES[currRoundType]}\n`;
-//   for (let i = 0; i < player_count; i++) {
-//     const player = players[i];
-//     const playerMsg = player.getStatus();
-//     statusMsg += playerMsg + "\n";
-//   }
-//   bot.sendMessage(chatId, statusMsg);
-
 
 // function startTurn(newTurn) {
 //   const playerId = playerLookup[turn];
@@ -122,5 +85,3 @@ bot.onText(/status/, (msg) => {
 //   });
 // }
 
-
-// })
