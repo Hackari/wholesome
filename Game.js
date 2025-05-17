@@ -64,7 +64,7 @@ class Game {
 		this.message(this.chatId, text);
 	}
 
-	gameIsFull() {
+	isFull() {
 		return this.playerCount >= MAX_PLAYERS;
 	}
 
