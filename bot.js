@@ -8,17 +8,21 @@ const bot = new TelegramBot(config.token, { polling: true });
 // Start
 bot.onText(/\/start/, (msg) => {
 	const chatID = msg.chat.id;
-	if (msg.chat.type == 'private' || msg.chat.type == 'channel') {
-		bot.sendMessage(chatID, `Start the game in a group chat`);
+	if (Game.getGameByChatId(chatID)) {
+		bot.sendMessage(chatID, `Game already created`);
 	} else {
-		const game = new Game(chatID, bot);
-		bot.sendMessage(chatID, `Game started! 1/4\n- ${msg.from.username}`, {
-			reply_markup: {
-				inline_keyboard: [
-					[{ text: 'Join', callback_data: 'join_game' }]]
-			}
-		});
-		game.join(msg.from);
+		if (msg.chat.type == 'private' || msg.chat.type == 'channel') {
+			bot.sendMessage(chatID, `Start the game in a group chat`);
+		} else {
+			const game = new Game(chatID, bot);
+			bot.sendMessage(chatID, `Game created! 1/4\n- ${msg.from.username}`, {
+				reply_markup: {
+					inline_keyboard: [
+						[{ text: 'Join', callback_data: 'join_game' }]]
+				}
+			});
+			game.join(msg.from);
+		}
 	}
 });
 
@@ -28,14 +32,14 @@ bot.on('callback_query', (query) => {
 	const msg = query.message;
 	const game = Game.getGameByChatId(msg.chat.id);
 	if (callback_data == "join_game") {
-		game.join(query.from);
-		const opts = { chat_id: msg.chat.id, message_id: msg.message_id };
-		if (game.isFull()) {
-			bot.editMessageText(`All players found.\nStarting game.`, opts)
-			bot.editMessageReplyMarkup({}, opts);
-		} else {
-			bot.editMessage(`${msg.text.substring(0, 14)}${game.playerCount}${msg.text.substring(14 + 1)}\n- ${query.from.username}`, opts);
-		}
+		if (game.join(query.from)) {
+			const opts = { chat_id: msg.chat.id, message_id: msg.message_id };
+			bot.editMessageText(`${msg.text.substring(0, 14)}${game.playerCount}${msg.text.substring(14 + 1)}\n- ${query.from.username}`, opts);
+			if (game.isFull()) {
+				bot.editMessageReplyMarkup({}, opts).catch(() => {}); // remove button
+				bot.sendMessage(msg.chat.id, `All players found.\nStarting game.`);
+			} 
+		} // we don't expect to encounter a failure to join, since the button will be removed upon the game becoming full
 	}
 });
 

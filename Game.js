@@ -69,24 +69,29 @@ class Game {
 	}
 
 	join(usr) {
-		const newPlayer = new Player(usr, this.playerCount, this.deckInit);
-		this.players[this.playerCount] = newPlayer;
-		this.inversePlayers[this.playerCount] = usr.id;
+		if (!this.isFull()) {
+			const newPlayer = new Player(usr, this.playerCount, this.deckInit);
+			this.players[this.playerCount] = newPlayer;
+			this.inversePlayers[this.playerCount] = usr.id;
 
-		if (newPlayer.first) {
-			this.turn = this.playerCount;
-			console.log(`Three diamonds found.`);
+			if (newPlayer.first) {
+				this.turn = this.playerCount;
+				console.log(`Three diamonds found.`);
+			}
+
+			this.playerCount++;
+
+			let playerJoinMsg = `${newPlayer.username} joined as player ${this.playerCount}`
+			console.log(playerJoinMsg);
+			// this.broadcast(playerJoinMsg);
+
+			// if (this.gameIsFull()) {
+			//	this.broadcast(`All players found. Starting game.`)
+			// }
+
+			return true;
 		}
-
-		this.playerCount++;
-
-		let playerJoinMsg = `${newPlayer.username} joined as player ${this.playerCount}`
-		console.log(playerJoinMsg);
-		// this.broadcast(playerJoinMsg);
-
-		// if (this.gameIsFull()) {
-		//	this.broadcast(`All players found. Starting game.`)
-		// }
+		return false;
 	}
 
 	getPlayer(usr) {
