@@ -1,4 +1,9 @@
 {
+  "scripts": {
+		"start": "node dist/bot.js",
+		"dev": "tsc -p . && node src/app.ts",
+		"build": "tsc -p ."
+	},
   "dependencies": {
     "node-telegram-bot-api": "^0.66.0",
     "react": "^19.1.0"
