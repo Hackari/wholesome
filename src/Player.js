@@ -1,7 +1,7 @@
 const Card = require('./Card'); 
-const Single = require('./Single');
-const Pair = require('./Pair');
-const CardSet = require('./CardSet');
+const Single = require('./Rounds/Single');
+const Pair = require('./Rounds/Pair');
+const CardSet = require('./Rounds/CardSet');
 
 const {
 	SINGLE,
@@ -21,7 +21,7 @@ class Player {
         this.comp = Card.compareByValueThenSuit;
 
         const startIdx = turn * 13;
-        const endIdx = startIdx + 1;
+        const endIdx = startIdx + 13;
         this.hand = initDeck.slice(startIdx, endIdx).sort(this.comp); 
 
         this.first = false;

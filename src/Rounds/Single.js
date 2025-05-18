@@ -1,6 +1,6 @@
-const Card = require('./Card');
+const Card = require('../Card');
 
-const {SINGLE, STRAIGHT} = require('./Constants')
+const {SINGLE, STRAIGHT} = require('../Constants')
 
 class Single {
     constructor(card) {

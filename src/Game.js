@@ -13,7 +13,6 @@ const {
 	SET,
 	SET_TYPES
 } = require('./Constants');
-const { useDeferredValue } = require('react');
 
 class Game {
 	static instances = [];

@@ -1,10 +1,9 @@
 const TelegramBot = require('node-telegram-bot-api');
-const config = require('./Config.js');
+const config = require('../Config.js');
 const Game = require('./Game.js');
 
 const bot = new TelegramBot(config.token, { polling: true });
 
-// Start
 bot.onText(/\/start/, (msg) => {
 	const chatID = msg.chat.id;
 	if (Game.getGameByChatId(chatID)) {
@@ -25,7 +24,6 @@ bot.onText(/\/start/, (msg) => {
 	}
 });
 
-// Handle callbacks
 bot.on('callback_query', (query) => {
 	const callback_data = query.data;
 	const msg = query.message;

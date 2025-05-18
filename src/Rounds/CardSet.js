@@ -1,4 +1,4 @@
-const Card = require('./Card');
+const Card = require('../Card');
 
 const {
     SET,
@@ -9,7 +9,7 @@ const {
     STRAIGHT_FLUSH,
     ROYAL_FLUSH,
     INVALID_SET
-} = require('./Constants')
+} = require('../Constants')
 
 const ACE = 11;
 const TWO = 12;

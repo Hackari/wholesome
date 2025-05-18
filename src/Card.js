@@ -12,7 +12,7 @@ class Card {
 
     getValue() {
         const values = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'];
-        return values[this.value];  // Return the corresponding value as a string
+        return values[this.value];
     }
 
     getSuit() {

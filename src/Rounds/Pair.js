@@ -1,6 +1,6 @@
-const Card = require('./Card');
+const Card = require('../Card');
 
-const {PAIR, STRAIGHT} = require('./Constants')
+const {PAIR, STRAIGHT} = require('../Constants')
 
 class Pair {
     constructor(selectedCards) {
