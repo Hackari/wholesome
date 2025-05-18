@@ -1,5 +1,5 @@
 const TelegramBot = require('node-telegram-bot-api');
-const config = require('./config.js');
+const config = require('./Config.js');
 const Game = require('./Game.js');
 
 const bot = new TelegramBot(config.token, { polling: true });
@@ -48,15 +48,19 @@ bot.onText(/\/join/, (msg) => {
 });
 
 bot.onText(/hand/, (msg) => {
-	Game.getGameByChatId(msg.chat.id).showHand(msg.from);
+	Game.getGameByUserId(msg.chat.id).showHand(msg.from);
 });
 
 bot.onText(/sort/, (msg) => {
-	Game.getGameByChatId(msg.chat.id).sortHand(msg.from);
+	Game.getGameByUserId(msg.chat.id).sortHand(msg.from);
 });
 
 bot.onText(/status/, (msg) => {
-	Game.getGameByChatId(msg.chat.id).showStatus(msg.from);
+	Game.getGameByUserId(msg.chat.id).showStatus(msg.from);
+});
+
+bot.onText(/play/, (msg) => {
+	Game.getGameByUserId(msg.chat.id).play(msg.from, msg.text);
 });
 
 // function startTurn(newTurn) {

@@ -3,21 +3,16 @@ const DeckInit = require('./DeckInit');
 const Player = require('./Player');
 
 const MAX_PLAYERS = 2;
-const ROUND_TYPES = ['Single', 'Pair', 'Set', 'Any'];
-const SET_TYPES = ['Straight', 'Flush', 'Full House', 'Straight Flush', 'Royal Flush'];
 
-const SINGLE = 0;
-const PAIR = 1;
-const SET = 2;
-const ANY = 3;
-
-const STRAIGHT = 0;
-const FLUSH = 1;
-const FULL_HOUSE = 2;
-const STRAIGHT_FLUSH = 3;
-const ROYAL_FLUSH = 4;
-
-const THREE_DIAMONDS = 0;
+const {
+	ROUND_TYPES,
+	ANY,
+	STRAIGHT,
+	THREE_DIAMONDS, 
+	FORCE_START,
+	SET,
+	SET_TYPES
+} = require('./Constants');
 
 class Game {
 	static instances = [];
@@ -52,6 +47,11 @@ class Game {
 		return Game.instances.filter(g => g.chatId == chatId)[0];
 	}
 
+	static getGameByUserId(userId) {
+		return Game.instances.filter(g => g.inversePlayers.includes(userId))[0];
+	}
+
+
 	message(userId, text) {
 		this.bot.sendMessage(userId, text);
 	}
@@ -77,17 +77,15 @@ class Game {
 			if (newPlayer.first) {
 				this.turn = this.playerCount;
 				console.log(`Three diamonds found.`);
+			} else if (this.playerCount == 0 && FORCE_START) {
+				this.turn = this.playerCount;
+				console.log(`Three diamonds found.`);
 			}
 
 			this.playerCount++;
 
 			let playerJoinMsg = `${newPlayer.username} joined as player ${this.playerCount}`
 			console.log(playerJoinMsg);
-			// this.broadcast(playerJoinMsg);
-
-			// if (this.gameIsFull()) {
-			//	this.broadcast(`All players found. Starting game.`)
-			// }
 
 			return true;
 		}
@@ -119,8 +117,14 @@ class Game {
 
 	showStatus(usr) {
 		const player = this.getPlayer(usr);
-		let statusMsg = `Total players: ${this.playerCount}`
+		let statusMsg = `Total players: ${this.playerCount}\n`
 		statusMsg += `Current Round Type: ${ROUND_TYPES[this.currRoundType]}\n`;
+		if (this.currRoundType == SET) {
+			statusMsg += `Current Set Type: ${SET_TYPES[this.currSetType]}\n`;
+		}
+		statusMsg += `Current High: ${this.high}\n`;
+
+
 		for (let i = 0; i < this.playerCount; i++) {
 			const player = this.players[i];
 			const playerMsg = player.getStatus();
@@ -131,14 +135,22 @@ class Game {
 
 	play(usr, text) {
 		const cardIndices = text.split(' ').slice(1);
-		this.playerAction(usr,
-			(player) => player.playCards(cardIndices,
+		const player = this.getPlayer(usr);
+		const resultMsg = player.playCards(cardIndices,
 				this.currRoundType,
 				this.currSetType,
 				this.high)
-		)
-	}
 
+		if (typeof resultMsg === 'string') {
+			this.message(player.userId, resultMsg);
+		} else {
+			this.high = resultMsg.getHighest();
+			this.currRoundType = resultMsg.getRoundType();
+			this.currSetType = resultMsg.getSetType();
+			this.broadcast(`${player.username} played ${resultMsg}`);
+			this.showHand(usr);
+		}
+	}
 }
 
 module.exports = Game;

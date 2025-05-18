@@ -24,23 +24,23 @@ class Card {
         return `${this.getValue()}${this.getSuit()}`;
     }
 
-    static compareBySuitThenValue(cardA, cardB) {
-        if (cardA.suit < cardB.suit) {
+    static compareBySuitThenValue(card1, card2) {
+        if (card1.suit < card2.suit) {
             return -1;
-        } else if (cardA.suit > cardB.suit) {
+        } else if (card1.suit > card2.suit) {
             return 1;
         } else {
-            return cardA.value - cardB.value;
+            return card1.value - card2.value;
         }
     }
 
-    static compareByValueThenSuit(cardA, cardB) {
-        if (cardA.value < cardB.value) {
+    static compareByValueThenSuit(card1, card2) {
+        if (card1.value < card2.value) {
             return -1;
-        } else if (cardA.value > cardB.value) {
+        } else if (card1.value >= card2.value) {
             return 1;
         } else {
-            return cardA.suit - cardB.suit;
+            return card1.suit - card2.suit;
         }
     }
 }

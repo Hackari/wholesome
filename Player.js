@@ -1,6 +1,17 @@
 const Card = require('./Card'); 
+const Single = require('./Single');
+const Pair = require('./Pair');
+const CardSet = require('./CardSet');
 
-const INVALID_ROUND = 4;
+const {
+	SINGLE,
+    PAIR,
+    SET,
+    ANY,
+	THREE_DIAMONDS,
+    INVALID_ROUND,
+    ROUND_TYPES
+} = require('./Constants');
 
 class Player {
     constructor(usr, turn, initDeck) {
@@ -15,7 +26,7 @@ class Player {
 
         this.first = false;
         const firstCard = this.hand[0];
-        if (firstCard.isCard(0)) {
+        if (firstCard.isCard(THREE_DIAMONDS)) {
             this.first = true;
         }
     }
@@ -49,50 +60,59 @@ class Player {
     }
 
     removeCards(cardIndices) {
-        for (let i = 0; i < cardIndices.length(); i++) {
-            cardIndex = cardIndices[i] -1;
-            this.cards.splice(card - 1, 1);
+        let inputLength = cardIndices.length;
+        cardIndices.sort((a, b) => b - a);
+        for (let i = 0; i < inputLength; i++) {
+            let cardIndex = cardIndices[i] - 1;
+            this.hand.splice(cardIndex, 1);
+            console.log(this.hand);
         }
     }
 
+    isAllUnique(list) {
+        return new Set(list).size === list.length;
+    }
+
     playCards(cardIndices, currRoundType, currSetType, high) {
-        for (let i = 0; i < cardIndices.length(); i++) {
-            cardIndex = cardIndices[i]
+        let inputLength = cardIndices.length;
+        for (let i = 0; i < inputLength; i++) {
+            let cardIndex = cardIndices[i]
             if (0 >= cardIndex || cardIndex > this.getCardCount()) {
-                // throw error
-                return;
+                return `Invalid card index ${cardIndex} found`;
             }
         }
 
-        playedRoundType = INVALID_ROUND;
+        if (!this.isAllUnique(cardIndices)) {
+            return `You played duplicate cards.`
+        }
 
+        let playedRoundType = INVALID_ROUND;
+        let playerMove = null;
         const selectedCards = cardIndices.map(cardIndex => this.hand[cardIndex - 1]);
-
-        switch (cardIndices.length) {
+        switch (inputLength) {
             case 1:
-                playerMove = new Single(...selectedCards);
-                playedRoundType = Game.SINGLE;
+                playerMove = new Single(selectedCards);
+                playedRoundType = SINGLE;
                 break;
             case 2:
-                playerMove = new Pair(...selectedCards);
-                playedRoundType = Game.PAIR;
+                playerMove = new Pair(selectedCards);
+                playedRoundType = PAIR;
                 break;
             case 5:
-                playerMove = new Set(...selectedCards);
-                playedRoundType = Game.SET;
+                playerMove = new CardSet(selectedCards);
+                playedRoundType = SET;
                 break;
             default:
-                // invalid amount of cards
-                return;
+                return "Invalid amount of cards";
         }
 
-        if (currRoundType != playedRoundType) {
-            // ask for cards again
-            return;
+        if (currRoundType != ANY && currRoundType != playedRoundType) {
+            return `The current round type is ${ROUND_TYPES[currRoundType]}. 
+            You played ${ROUND_TYPES[playedRoundType]}.`;
         }
-        if (!playerMove.canPlay(currSetType, high)) {
-            // ask for cards again
-            return;
+
+        if (!(playerMove.canPlay(currSetType, high))) {
+            return `You tried to play ${playerMove.toStringAsHand()}`;
         }
 
         this.removeCards(cardIndices);
