@@ -1,12 +1,16 @@
-class Card {
-    constructor(number) {
+export class Card {
+    number: number;
+    value: number;
+    suit: number;
+
+    constructor(number: number) {
         this.number = number;
 
         this.value = Math.floor(number / 4);
         this.suit = number % 4;
     }
 
-    isCard(number) {
+    isCard(number: number) {
         return this.number == number;
     }
 
@@ -24,7 +28,7 @@ class Card {
         return `${this.getValue()}${this.getSuit()}`;
     }
 
-    static compareBySuitThenValue(card1, card2) {
+    static compareBySuitThenValue(card1: Card, card2: Card) {
         if (card1.suit < card2.suit) {
             return -1;
         } else if (card1.suit > card2.suit) {
@@ -34,7 +38,7 @@ class Card {
         }
     }
 
-    static compareByValueThenSuit(card1, card2) {
+    static compareByValueThenSuit(card1: Card, card2: Card) {
         if (card1.value < card2.value) {
             return -1;
         } else if (card1.value >= card2.value) {
@@ -44,5 +48,3 @@ class Card {
         }
     }
 }
-
-module.exports = Card;

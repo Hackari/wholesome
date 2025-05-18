@@ -1,10 +1,13 @@
 const TelegramBot = require('node-telegram-bot-api');
-const config = require('../Config.js');
-const Game = require('./Game.js');
+import { CallbackQuery, Message, User } from 'node-telegram-bot-api';
+const config = require('../config.js');
+// import { config } from '../config';
+import { Game } from './game';
+// const Game = require('./Game.js');
 
 const bot = new TelegramBot(config.token, { polling: true });
 
-bot.onText(/\/start/, (msg) => {
+bot.onText(/\/start/, (msg: Message) => {
 	const chatID = msg.chat.id;
 	if (Game.getGameByChatId(chatID)) {
 		bot.sendMessage(chatID, `Game already created`);
@@ -13,20 +16,21 @@ bot.onText(/\/start/, (msg) => {
 			bot.sendMessage(chatID, `Start the game in a group chat`);
 		} else {
 			const game = new Game(chatID, bot);
-			bot.sendMessage(chatID, `Game created! 1/4\n- ${msg.from.username}`, {
+            const from = msg.from as User;
+			bot.sendMessage(chatID, `Game created! 1/4\n- ${from.username}`, {
 				reply_markup: {
 					inline_keyboard: [
 						[{ text: 'Join', callback_data: 'join_game' }]]
 				}
 			});
-			game.join(msg.from);
+			game.join(from);
 		}
 	}
 });
 
-bot.on('callback_query', (query) => {
+bot.on('callback_query', (query: CallbackQuery) => {
 	const callback_data = query.data;
-	const msg = query.message;
+	const msg = query.message as Message;
 	const game = Game.getGameByChatId(msg.chat.id);
 	if (callback_data == "join_game") {
 		if (game.join(query.from)) {
@@ -42,26 +46,26 @@ bot.on('callback_query', (query) => {
 	}
 });
 
-bot.onText(/\/join/, (msg) => {
-	Game.getGameByChatId(msg.chat.id).join(msg.from);
+bot.onText(/\/join/, (msg: Message) => {
+	Game.getGameByChatId(msg.chat.id).join(msg.from as User);
 });
 
-bot.onText(/hand/, (msg) => {
-	Game.getGameByUserId(msg.chat.id).showHand(msg.from);
+bot.onText(/hand/, (msg: Message) => {
+	Game.getGameByUserId(msg.chat.id).showHand(msg.from as User);
 });
 
-bot.onText(/sort/, (msg) => {
-	Game.getGameByUserId(msg.chat.id).sortHand(msg.from);
+bot.onText(/sort/, (msg: Message) => {
+	Game.getGameByUserId(msg.chat.id).sortHand(msg.from as User);
 });
 
-bot.onText(/status/, (msg) => {
-	Game.getGameByUserId(msg.chat.id).showStatus(msg.from);
+bot.onText(/status/, (msg: Message) => {
+	Game.getGameByUserId(msg.chat.id).showStatus(msg.from as User);
 });
 
-bot.onText(/play/, (msg) => {
-	Game.getGameByUserId(msg.chat.id).play(msg.from, msg.text);
+bot.onText(/play/, (msg: Message) => {
+	Game.getGameByUserId(msg.chat.id).play(msg.from as User, msg.text as string);
 });
 
-bot.onText(/pass/, (msg) => {
-	Game.getGameByUserId(msg.chat.id).pass(msg.from);
+bot.onText(/pass/, (msg: Message) => {
+	Game.getGameByUserId(msg.chat.id).pass(msg.from as User);
 });

@@ -1,40 +1,40 @@
-const Card = require('./Card');
-const DeckInit = require('./DeckInit');
-const Player = require('./Player');
+import { Card } from './card';
+import { Deck } from './deck';
+import { Player } from './player';
+// const Card = require('./Card');
+// const DeckInit = require('./DeckInit');
+// const Player = require('./Player');
 
 const MAX_PLAYERS = 2;
 
-const {
-	ROUND_TYPES,
-	ANY,
-	STRAIGHT,
-	THREE_DIAMONDS, 
-	FORCE_START,
-	SET,
-	SET_TYPES
-} = require('./Constants');
+import { ANY, FORCE_START, ROUND_TYPES, SET, SET_TYPES, STRAIGHT, THREE_DIAMONDS } from './constants';
+import { User } from 'node-telegram-bot-api';
+import TelegramBot = require('node-telegram-bot-api');
 
-class Game {
-	static instances = [];
+export class Game {
+	static instances: Game[] = [];
 
-	constructor(chatId, bot) {
-		this.players = [];
-		this.inversePlayers = [];
-		this.playerCount = 0;
-		this.turn = MAX_PLAYERS;
-		this.currRoundType = ANY;
-		this.currSetType = STRAIGHT;
-		this.high = new Card(THREE_DIAMONDS);
-		this.isActive = false;
-		this.endMsg = "";
-		this.passCount = 0;
-		this.endCount = 0;
+    bot: TelegramBot;
+    chatId: number;
+    players: Player[] = [];
+    inversePlayers: number[] = [];
+    playerCount: number = 0;
+    turn: number = MAX_PLAYERS;
+    currRoundType: number = ANY;
+    currSetType: number = STRAIGHT;
+    high: Card = new Card(THREE_DIAMONDS);
+    isActive: boolean = false;
+    endMsg: string = "";
+    passCount: number = 0;
+    endCount: number = 0;
+    deck: Deck;
 
+	constructor(chatId: number, bot: TelegramBot) {
 		this.chatId = chatId;
 		this.bot = bot;
 
-		this.deckInit = new DeckInit();
-		this.deckInit.shuffle();
+		this.deck = new Deck();
+		this.deck.shuffle();
 
 		Game.instances.push(this); // WARNING: may lead to memory leaks if instances are created and never destroyed
 	}
@@ -45,20 +45,20 @@ class Game {
 		Game.instances.splice(i, 1);
 	}
 
-	static getGameByChatId(chatId) {
+	static getGameByChatId(chatId: number) {
 		return Game.instances.filter(g => g.chatId == chatId)[0];
 	}
 
-	static getGameByUserId(userId) {
+	static getGameByUserId(userId: number) {
 		return Game.instances.filter(g => g.inversePlayers.includes(userId))[0];
 	}
 
 
-	message(userId, text) {
+	message(userId: number, text: string) {
 		this.bot.sendMessage(userId, text);
 	}
 
-	broadcast(text) {
+	broadcast(text: string) {
 		for (let i = 0; i < this.playerCount; i++) {
 			const player = this.players[i];
 			this.message(player.userId, text);
@@ -70,9 +70,9 @@ class Game {
 		return this.playerCount >= MAX_PLAYERS;
 	}
 
-	join(usr) {
+	join(usr: User) {
 		if (!this.isFull()) {
-			const newPlayer = new Player(usr, this.playerCount, this.deckInit);
+			const newPlayer = new Player(usr, this.playerCount, this.deck);
 			this.players[this.playerCount] = newPlayer;
 			this.inversePlayers[this.playerCount] = usr.id;
 
@@ -89,30 +89,30 @@ class Game {
 		return false;
 	}
 
-	getPlayer(usr) {
+	getPlayer(usr: User) {
 		const player = this.players[this.inversePlayers.indexOf(usr.id)];
 		return player;
 	}
 
-	playerAction(usr, action) {
+	playerAction(usr: User, action: (player: Player) => string) {
 		const player = this.getPlayer(usr);
 		const resultMsg = action(player)
 		this.message(player.userId, resultMsg);
 	}
 
-	showHand(usr) {
+	showHand(usr: User) {
 		this.playerAction(usr,
 			(player) => player.showHand()
 		);
 	}
 
-	sortHand(usr) {
+	sortHand(usr: User) {
 		this.playerAction(usr,
 			(player) => player.sortHand()
 		);
 	}
 
-	showStatus(usr) {
+	showStatus(usr: User) {
 		const player = this.getPlayer(usr);
 		let statusMsg = `Total players: ${this.playerCount}\n`
 		statusMsg += `Current Round Type: ${ROUND_TYPES[this.currRoundType]}\n`;
@@ -137,7 +137,7 @@ class Game {
 		this.message(player.userId, pingMsg);
 	}
 
-	isPlayerTurn(player) {
+	isPlayerTurn(player: Player) {
 		return player.turn == this.turn;
 	}
 
@@ -164,7 +164,7 @@ class Game {
 		this.currSetType = STRAIGHT;
 	}
 
-	pass(usr) {
+	pass(usr: User) {
 		const player = this.getPlayer(usr);
 		if (!this.isPlayerTurn(player)) {
 			this.message(player.userId, "It is not your turn.")
@@ -180,8 +180,8 @@ class Game {
 		this.nextTurn();
 	}
 
-	play(usr, text) {
-		const cardIndices = text.split(' ').slice(1);
+	play(usr: User, text: string) {
+		const cardIndices = text.split(' ').slice(1).map(s => parseInt(s, 10));
 		const player = this.getPlayer(usr);
 		if (!this.isPlayerTurn(player)) {
 			this.message(player.userId, "It is not your turn.")
@@ -219,5 +219,3 @@ class Game {
 		this.destroy(); // Is this correct? @Alieron
 	}
 }
-
-module.exports = Game;

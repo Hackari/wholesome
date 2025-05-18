@@ -1,30 +1,34 @@
-const Card = require('./Card'); 
-const Single = require('./Rounds/Single');
-const Pair = require('./Rounds/Pair');
-const CardSet = require('./Rounds/CardSet');
+import { Card } from './card';
+import { Single } from './Rounds/Single';
+import { Pair } from './Rounds/Pair';
+import { CardSet } from './Rounds/CardSet';
+// const Card = require('./Card'); 
+// const Single = require('./Rounds/Single');
+// const Pair = require('./Rounds/Pair');
+// const CardSet = require('./Rounds/CardSet');
+import { Deck } from './deck';
 
-const {
-	SINGLE,
-    PAIR,
-    SET,
-    ANY,
-	THREE_DIAMONDS,
-    INVALID_ROUND,
-    ROUND_TYPES
-} = require('./Constants');
+import { SINGLE, PAIR, SET, ANY, THREE_DIAMONDS, INVALID_ROUND, ROUND_TYPES } from './constants';
+import { User } from 'node-telegram-bot-api';
 
-class Player {
-    constructor(usr, turn, initDeck) {
+export class Player {
+    first: boolean = false;
+    userId: number;
+    username: string;
+    turn: number;
+    comp: (card1: Card, card2: Card) => number;
+    hand: Card[];
+
+    constructor(usr: User, turn: number, initDeck: Deck) {
         this.userId = usr.id;
-        this.username = usr.username;
+        this.username = usr.username as string;
         this.turn = turn;
         this.comp = Card.compareByValueThenSuit;
 
-        const startIdx = turn * 13;
+        const startIdx = this.turn * 13;
         const endIdx = startIdx + 13;
         this.hand = initDeck.slice(startIdx, endIdx).sort(this.comp); 
 
-        this.first = false;
         const firstCard = this.hand[0];
         if (firstCard.isCard(THREE_DIAMONDS)) {
             this.first = true;
@@ -59,7 +63,7 @@ class Player {
         return this.hand.length;
     }
 
-    removeCards(cardIndices) {
+    removeCards(cardIndices: number[]) {
         let inputLength = cardIndices.length;
         cardIndices.sort((a, b) => b - a);
         for (let i = 0; i < inputLength; i++) {
@@ -68,11 +72,11 @@ class Player {
         }
     }
 
-    isAllUnique(list) {
+    isAllUnique(list: number[]) {
         return new Set(list).size === list.length;
     }
 
-    playCards(cardIndices, currRoundType, currSetType, high) {
+    playCards(cardIndices: number[], currRoundType: number, currSetType: number, high: Card) {
         let inputLength = cardIndices.length;
         for (let i = 0; i < inputLength; i++) {
             let cardIndex = cardIndices[i]
@@ -126,5 +130,3 @@ class Player {
         return `${marker}${this.turn + 1}: ${this.username} (${this.getCardCount()} card(s) left)`;
     }
 }
-
-module.exports = Player;

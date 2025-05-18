@@ -1,0 +1,16 @@
+{
+"compilerOptions": {
+    "strict": true,
+    "module": "commonjs",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "outDir": "./dist",
+    "rootDir": "./src/",
+    // "sourceMap": true,
+    // "sourceRoot": "./src/",
+    // "allowJs": true,
+},
+"include": ["src/**/*"],
+"exclude": ["config.js"]
+}

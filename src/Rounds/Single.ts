@@ -1,13 +1,15 @@
-const Card = require('../Card');
+import { Card } from '../card';
 
-const {SINGLE, STRAIGHT} = require('../Constants')
+import { SINGLE, STRAIGHT } from '../constants';
 
-class Single {
-    constructor(card) {
+export class Single {
+    card: Card;
+    
+    constructor(card: Card) {
         this.card = card;
     }
 
-    canPlay(currSetType, high) {
+    canPlay(currSetType: number, high: Card) {
         let isHigher = this.card.number >= high.number;
         return isHigher;
     }
@@ -32,5 +34,3 @@ class Single {
         return STRAIGHT;
     }
 }
-
-module.exports = Single;

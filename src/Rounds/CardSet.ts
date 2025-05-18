@@ -1,6 +1,5 @@
-const Card = require('../Card');
-
-const {
+import { Card } from '../card';
+import {
     SET,
     SET_TYPES,
     STRAIGHT,
@@ -9,7 +8,7 @@ const {
     STRAIGHT_FLUSH,
     ROYAL_FLUSH,
     INVALID_SET
-} = require('../Constants')
+} from '../constants';
 
 const ACE = 11;
 const TWO = 12;
@@ -17,8 +16,16 @@ const THREE = 0;
 const FOUR = 1;
 const FIVE = 2;
 
-class CardSet {
-    constructor(selectedCards) {
+export class CardSet {
+    card1: Card;
+    card2: Card;
+    card3: Card;
+    card4: Card;
+    card5: Card;
+    highCard: Card;
+    setType: number;
+
+    constructor(selectedCards: Card[]) {
         selectedCards.sort(Card.compareByValueThenSuit);
         this.card1 = selectedCards[0];
         this.card2 = selectedCards[1];
@@ -53,7 +60,7 @@ class CardSet {
         }
 
         if (v4 == ACE && v5 == TWO &&
-            v1 == THREE && v2 == FOUR && v5 == FIVE) {
+            v1 == THREE && v2 == FOUR && v3 == FIVE) {
                 return true;
             }
             
@@ -113,7 +120,7 @@ class CardSet {
         return INVALID_SET;
     }
 
-    canPlay(currSetType, high) {
+    canPlay(currSetType: number, high: Card) {
         let playedSetType = this.getPlayedSet();
         let isSameSetType = playedSetType >= currSetType;
         let isHigher = this.highCard.number >= high.number;
@@ -140,5 +147,3 @@ class CardSet {
         return this.setType;
     }
 }
-
-module.exports = CardSet;

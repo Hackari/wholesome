@@ -1,9 +1,12 @@
-const Card = require('../Card');
+import { Card } from '../card';
 
-const {PAIR, STRAIGHT} = require('../Constants')
+import { PAIR, STRAIGHT } from '../constants';
 
-class Pair {
-    constructor(selectedCards) {
+export class Pair {
+    card1: Card;
+    card2: Card;
+
+    constructor(selectedCards: Card[]) {
         let card1 = selectedCards[0];
         let card2 = selectedCards[1];
         if (card1.number > card2.number) {
@@ -15,7 +18,7 @@ class Pair {
         }
     }
 
-    canPlay(currSetType, high) {
+    canPlay(currSetType: number, high: Card) {
         let isHigher = this.card1.number >= high.number;
         let isSameNumber = this.card1.value == this.card2.value;
         return isSameNumber && isHigher;
@@ -41,5 +44,3 @@ class Pair {
         return STRAIGHT;
     }
 }
-
-module.exports = Pair;

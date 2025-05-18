@@ -1,6 +1,9 @@
-const Card = require('./Card'); 
+import { Card } from './card';
+// const Card = require('./Card'); 
 
-class DeckInit {
+export class Deck {
+    deck: Card[];
+
     constructor() {
         this.deck = this.init(); 
     }
@@ -21,9 +24,7 @@ class DeckInit {
         return this.deck;
     }
 
-    slice(start, end) {
+    slice(start: number, end: number) {
         return this.deck.slice(start, end);
     }
 }
-
-module.exports = DeckInit;

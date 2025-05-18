@@ -1,5 +1,6 @@
 const MAX_PLAYERS = 2;
 const ROUND_TYPES = ['Single', 'Pair', 'Set', 'Any'];
+const INVALID_ROUND = 0
 const SET_TYPES = ['Straight', 'Flush', 'Full House', 'Straight Flush', 'Royal Flush'];
 
 const SINGLE = 0;
@@ -17,9 +18,10 @@ const INVALID_SET = -1;
 const THREE_DIAMONDS = 0;
 const FORCE_START = true;
 
-module.exports = {
+export {
   MAX_PLAYERS,
   ROUND_TYPES,
+  INVALID_ROUND,
   SET_TYPES,
   SINGLE,
   PAIR,
