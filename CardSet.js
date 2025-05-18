@@ -31,8 +31,6 @@ class CardSet {
 
     isFlush() {
         const suit = this.card1.suit;
-        console.log(this.card1.suit,this.card2.suit,this.card3.suit,this.card4.suit,this.card5.suit)
-        console.log(this.card1, this.card2, this.card3, this.card4, this.card5)
         return (
             this.card2.suit === suit &&
             this.card3.suit === suit &&

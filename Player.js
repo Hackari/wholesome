@@ -18,10 +18,10 @@ class Player {
         this.userId = usr.id;
         this.username = usr.username;
         this.turn = turn;
-        this.comp = Card.compareBySuitThenValue;
+        this.comp = Card.compareByValueThenSuit;
 
         const startIdx = turn * 13;
-        const endIdx = startIdx + 13;
+        const endIdx = startIdx + 1;
         this.hand = initDeck.slice(startIdx, endIdx).sort(this.comp); 
 
         this.first = false;
@@ -32,7 +32,7 @@ class Player {
     }
 
     showHand() {
-        let cardList = ""
+        let cardList = "";
         const hand = this.hand;
         for (let i = 0; i < this.hand.length; i++) {
             cardList += `${i + 1}: ${this.hand[i]}\n`
@@ -65,7 +65,6 @@ class Player {
         for (let i = 0; i < inputLength; i++) {
             let cardIndex = cardIndices[i] - 1;
             this.hand.splice(cardIndex, 1);
-            console.log(this.hand);
         }
     }
 
@@ -91,7 +90,7 @@ class Player {
         const selectedCards = cardIndices.map(cardIndex => this.hand[cardIndex - 1]);
         switch (inputLength) {
             case 1:
-                playerMove = new Single(selectedCards);
+                playerMove = new Single(selectedCards[0]);
                 playedRoundType = SINGLE;
                 break;
             case 2:

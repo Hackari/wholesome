@@ -13,6 +13,7 @@ const {
 	SET,
 	SET_TYPES
 } = require('./Constants');
+const { useDeferredValue } = require('react');
 
 class Game {
 	static instances = [];
@@ -25,14 +26,16 @@ class Game {
 		this.currRoundType = ANY;
 		this.currSetType = STRAIGHT;
 		this.high = new Card(THREE_DIAMONDS);
-		this.gameActive = false;
+		this.isActive = false;
+		this.endMsg = "";
+		this.passCount = 0;
+		this.endCount = 0;
 
 		this.chatId = chatId;
 		this.bot = bot;
 
 		this.deckInit = new DeckInit();
 		this.deckInit.shuffle();
-		console.log(`Created a new game for ${MAX_PLAYERS} players in ${this.chatId.toString(16)}.`);
 
 		Game.instances.push(this); // WARNING: may lead to memory leaks if instances are created and never destroyed
 	}
@@ -76,16 +79,11 @@ class Game {
 
 			if (newPlayer.first) {
 				this.turn = this.playerCount;
-				console.log(`Three diamonds found.`);
-			} else if (this.playerCount == 0 && FORCE_START) {
+			} else if (this.playerCount === 0 && FORCE_START) {
 				this.turn = this.playerCount;
-				console.log(`Three diamonds found.`);
 			}
 
 			this.playerCount++;
-
-			let playerJoinMsg = `${newPlayer.username} joined as player ${this.playerCount}`
-			console.log(playerJoinMsg);
 
 			return true;
 		}
@@ -122,8 +120,8 @@ class Game {
 		if (this.currRoundType == SET) {
 			statusMsg += `Current Set Type: ${SET_TYPES[this.currSetType]}\n`;
 		}
+		statusMsg += `Current Turn: ${this.players[this.turn].username}\n`;
 		statusMsg += `Current High: ${this.high}\n`;
-
 
 		for (let i = 0; i < this.playerCount; i++) {
 			const player = this.players[i];
@@ -133,13 +131,71 @@ class Game {
 		this.message(player.userId, statusMsg);
 	}
 
+	pingCurrentPlayer() {
+		let player = this.players[this.turn];
+		let pingMsg = "It is now your turn!\n"
+		pingMsg += player.showHand();
+		this.message(player.userId, pingMsg);
+	}
+
+	isPlayerTurn(player) {
+		return player.turn == this.turn;
+	}
+
+	nextTurn() {
+		let player = this.players[this.turn];
+		let count = 0;
+		do {
+			this.turn = (this.turn + 1) % MAX_PLAYERS;
+			player = this.players[this.turn];
+			count++;
+		} while (count <= MAX_PLAYERS && player.getCardCount() == 0);
+
+		if (count > MAX_PLAYERS) {
+			this.endGame();
+			return;
+		}
+
+		this.pingCurrentPlayer();
+	}
+
+	reset() {
+		this.high = new Card(THREE_DIAMONDS);
+		this.currRoundType = ANY;
+		this.currSetType = STRAIGHT;
+	}
+
+	pass(usr) {
+		const player = this.getPlayer(usr);
+		if (!this.isPlayerTurn(player)) {
+			this.message(player.userId, "It is not your turn.")
+			return;
+		}
+		this.broadcast(`${player.username} passed`);
+		this.passCount++;
+		if (this.passCount >= (MAX_PLAYERS - this.endCount)) {
+			this.broadcast(`Resetting playing field.`);
+			this.reset();
+			this.passCount = 0;
+		}
+		this.nextTurn();
+	}
+
 	play(usr, text) {
 		const cardIndices = text.split(' ').slice(1);
 		const player = this.getPlayer(usr);
+		if (!this.isPlayerTurn(player)) {
+			this.message(player.userId, "It is not your turn.")
+			return;
+		}
 		const resultMsg = player.playCards(cardIndices,
 				this.currRoundType,
 				this.currSetType,
 				this.high)
+		
+		if (player.getCardCount() == 1) {
+			this.broadcast(`${player.username} has one card remaining.`);
+		}
 
 		if (typeof resultMsg === 'string') {
 			this.message(player.userId, resultMsg);
@@ -148,8 +204,20 @@ class Game {
 			this.currRoundType = resultMsg.getRoundType();
 			this.currSetType = resultMsg.getSetType();
 			this.broadcast(`${player.username} played ${resultMsg}`);
-			this.showHand(usr);
+			this.nextTurn();
 		}
+
+		if (player.getCardCount() == 0) {
+			this.broadcast(`${player.username} has ended.`);
+			this.endMsg += `${player.username}\n`
+			this.endCount++;
+			this.reset();
+		}
+	}
+
+	endGame() {
+		this.broadcast(`Game Standings:\n${this.endMsg}`);
+		this.destroy(); // Is this correct? @Alieron
 	}
 }
 
