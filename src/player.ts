@@ -1,7 +1,7 @@
 import { Card } from './card';
-import { Single } from './Rounds/Single';
-import { Pair } from './Rounds/Pair';
-import { CardSet } from './Rounds/CardSet';
+import { Single } from './rounds/single';
+import { Pair } from './rounds/pair';
+import { CardSet } from './rounds/cardset';
 // const Card = require('./Card'); 
 // const Single = require('./Rounds/Single');
 // const Pair = require('./Rounds/Pair');
