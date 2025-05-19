@@ -1,5 +1,4 @@
 import { Card } from '../card';
-
 import { SINGLE, STRAIGHT } from '../constants';
 
 export class Single {

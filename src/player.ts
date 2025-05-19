@@ -1,15 +1,10 @@
-import { Card } from './card';
-import { Single } from './rounds/single';
-import { Pair } from './rounds/pair';
-import { CardSet } from './rounds/cardset';
-// const Card = require('./Card'); 
-// const Single = require('./Rounds/Single');
-// const Pair = require('./Rounds/Pair');
-// const CardSet = require('./Rounds/CardSet');
-import { Deck } from './deck';
-
-import { SINGLE, PAIR, SET, ANY, THREE_DIAMONDS, INVALID_ROUND, ROUND_TYPES } from './constants';
 import { User } from 'node-telegram-bot-api';
+import { Card } from './card';
+import { ANY, INVALID_ROUND, PAIR, ROUND_TYPES, SET, SINGLE, THREE_DIAMONDS } from './constants';
+import { Deck } from './deck';
+import { CardSet } from './rounds/cardset';
+import { Pair } from './rounds/pair';
+import { Single } from './rounds/single';
 
 export class Player {
     first: boolean = false;

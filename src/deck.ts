@@ -1,5 +1,4 @@
 import { Card } from './card';
-// const Card = require('./Card'); 
 
 export class Deck {
     deck: Card[];

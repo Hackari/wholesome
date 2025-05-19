@@ -1,9 +1,7 @@
-const TelegramBot = require('node-telegram-bot-api');
 import { CallbackQuery, Message, User } from 'node-telegram-bot-api';
-const config = require('../config.js');
-// import { config } from '../config';
 import { Game } from './game';
-// const Game = require('./Game.js');
+const TelegramBot = require('node-telegram-bot-api');
+const config = require('../config.js');
 
 const bot = new TelegramBot(config.token, { polling: true });
 
@@ -35,7 +33,7 @@ bot.on('callback_query', (query: CallbackQuery) => {
 	if (callback_data == "join_game") {
 		if (game.join(query.from)) {
 			const opts = { chat_id: msg.chat.id, message_id: msg.message_id };
-			bot.editMessageText(`${msg.text.substring(0, 14)}${game.playerCount}${msg.text.substring(14 + 1)}\n- ${query.from.username}`, opts);
+			bot.editMessageText(`${msg.text?.substring(0, 14)}${game.playerCount}${msg.text?.substring(14 + 1)}\n- ${query.from.username}`, opts);
 			if (game.isFull()) {
 				game.isActive = true;
 				bot.editMessageReplyMarkup({}, opts).catch(() => {}); // remove button

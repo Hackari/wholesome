@@ -1,5 +1,4 @@
 import { Card } from '../card';
-
 import { PAIR, STRAIGHT } from '../constants';
 
 export class Pair {
