@@ -1,6 +1,6 @@
 # Lawrence's Big 2 (Dai Di) Ruleset
 
-## Setup
+## Bot Setup
 1. Clone the repo
 ```
 git clone https://github.com/Hackari/wholesome.git
@@ -22,6 +22,8 @@ npm run build
 npm run start
 ```
 > builds and starts the bot
+
+---
 
 ## 🎯 Objective
 Clear all your cards before the other players. The game ends when **only one player still has cards**. Ranks are determined by the order in which players clear their hands.
