@@ -1,15 +1,11 @@
+import TelegramBot, { User } from 'node-telegram-bot-api';
 import { Card } from './card';
+import { ANY, FORCE_START, ROUND_TYPES, SET, SET_TYPES, STRAIGHT, THREE_DIAMONDS } from './constants';
 import { Deck } from './deck';
 import { Player } from './player';
-// const Card = require('./Card');
-// const DeckInit = require('./DeckInit');
-// const Player = require('./Player');
 
 const MAX_PLAYERS = 2;
 
-import { ANY, FORCE_START, ROUND_TYPES, SET, SET_TYPES, STRAIGHT, THREE_DIAMONDS } from './constants';
-import { User } from 'node-telegram-bot-api';
-import TelegramBot = require('node-telegram-bot-api');
 
 export class Game {
 	static instances: Game[] = [];

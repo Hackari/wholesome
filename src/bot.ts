@@ -1,6 +1,5 @@
-import { CallbackQuery, Message, User } from 'node-telegram-bot-api';
+import TelegramBot, { CallbackQuery, InlineKeyboardMarkup, Message, User } from 'node-telegram-bot-api';
 import { Game } from './game';
-const TelegramBot = require('node-telegram-bot-api');
 const config = require('../config.js');
 
 const bot = new TelegramBot(config.token, { polling: true });
@@ -36,7 +35,7 @@ bot.on('callback_query', (query: CallbackQuery) => {
 			bot.editMessageText(`${msg.text?.substring(0, 14)}${game.playerCount}${msg.text?.substring(14 + 1)}\n- ${query.from.username}`, opts);
 			if (game.isFull()) {
 				game.isActive = true;
-				bot.editMessageReplyMarkup({}, opts).catch(() => {}); // remove button
+				bot.editMessageReplyMarkup({} as InlineKeyboardMarkup, opts).catch(() => {}); // remove button
 				bot.sendMessage(msg.chat.id, `All players found.\nStarting game.`);
 				game.pingCurrentPlayer();
 			} 
