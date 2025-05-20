@@ -66,7 +66,7 @@ export class Game {
 	}
 
 	addPlayer(usr: User) {
-		if (!this.isFull()) {
+		if (!this.isFull() && !this.inversePlayers.includes(usr.id)) {
 			const newPlayer = new Player(usr, this.playerCount, this.deck);
 			this.players[this.playerCount] = newPlayer;
 			this.inversePlayers[this.playerCount] = usr.id;
@@ -78,7 +78,10 @@ export class Game {
 			}
 
 			this.playerCount++;
+
+			return true;
 		}
+		return false;
 	}
 
 	start(usr: User) {
@@ -92,15 +95,15 @@ export class Game {
 	}
 
 	join(usr: User, msg: Message) {
-		this.addPlayer(usr);
-
-		const opts = { chat_id: this.chatId, message_id: msg.message_id };
-		this.bot.editMessageText(`${msg.text?.substring(0, 14)}${this.playerCount}${msg.text?.substring(14 + 1)}\n- ${usr.username}`, opts);
-		if (this.isFull()) {
-			this.bot.editMessageReplyMarkup({} as InlineKeyboardMarkup, opts).catch(() => { }); // remove button
-			this.message(this.chatId, `All players found.\nStarting game.`);
-			this.isActive = true;
-			this.pingCurrentPlayer();
+		if (this.addPlayer(usr)) {
+			const opts = { chat_id: this.chatId, message_id: msg.message_id };
+			this.bot.editMessageText(`${msg.text?.substring(0, 14)}${this.playerCount}${msg.text?.substring(14 + 1)}\n- ${usr.username}`, opts);
+			if (this.isFull()) {
+				this.bot.editMessageReplyMarkup({} as InlineKeyboardMarkup, opts).catch(() => { }); // remove button
+				this.message(this.chatId, `All players found.\nStarting game.`);
+				this.isActive = true;
+				this.pingCurrentPlayer();
+			}
 		}
 	}
 
