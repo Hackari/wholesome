@@ -1,4 +1,4 @@
-import TelegramBot, { User } from 'node-telegram-bot-api';
+import TelegramBot, { User, Message, InlineKeyboardMarkup, SendMessageOptions } from 'node-telegram-bot-api';
 import { Card } from './card';
 import { ANY, FORCE_START, ROUND_TYPES, SET, SET_TYPES, STRAIGHT, THREE_DIAMONDS } from './constants';
 import { Deck } from './deck';
@@ -10,20 +10,20 @@ const MAX_PLAYERS = 2;
 export class Game {
 	static instances: Game[] = [];
 
-    bot: TelegramBot;
-    chatId: number;
-    players: Player[] = [];
-    inversePlayers: number[] = [];
-    playerCount: number = 0;
-    turn: number = MAX_PLAYERS;
-    currRoundType: number = ANY;
-    currSetType: number = STRAIGHT;
-    high: Card = new Card(THREE_DIAMONDS);
-    isActive: boolean = false;
-    endMsg: string = "";
-    passCount: number = 0;
-    endCount: number = 0;
-    deck: Deck;
+	bot: TelegramBot;
+	chatId: number;
+	players: Player[] = [];
+	inversePlayers: number[] = [];
+	playerCount: number = 0;
+	turn: number = MAX_PLAYERS;
+	currRoundType: number = ANY;
+	currSetType: number = STRAIGHT;
+	high: Card = new Card(THREE_DIAMONDS);
+	isActive: boolean = false;
+	endMsg: string = "";
+	passCount: number = 0;
+	endCount: number = 0;
+	deck: Deck;
 
 	constructor(chatId: number, bot: TelegramBot) {
 		this.chatId = chatId;
@@ -49,9 +49,8 @@ export class Game {
 		return Game.instances.filter(g => g.inversePlayers.includes(userId))[0];
 	}
 
-
-	message(userId: number, text: string) {
-		this.bot.sendMessage(userId, text);
+	message(userId: number, text: string, opts?: SendMessageOptions) {
+		this.bot.sendMessage(userId, text, opts);
 	}
 
 	broadcast(text: string) {
@@ -66,7 +65,7 @@ export class Game {
 		return this.playerCount >= MAX_PLAYERS;
 	}
 
-	join(usr: User) {
+	addPlayer(usr: User) {
 		if (!this.isFull()) {
 			const newPlayer = new Player(usr, this.playerCount, this.deck);
 			this.players[this.playerCount] = newPlayer;
@@ -79,10 +78,30 @@ export class Game {
 			}
 
 			this.playerCount++;
-
-			return true;
 		}
-		return false;
+	}
+
+	start(usr: User) {
+		this.addPlayer(usr);
+		this.message(this.chatId, `Game created! 1/${MAX_PLAYERS}\n- ${usr.username}`, {
+			reply_markup: {
+				inline_keyboard: [
+					[{ text: 'Join', callback_data: 'join_game' }]]
+			}
+		});
+	}
+
+	join(usr: User, msg: Message) {
+		this.addPlayer(usr);
+
+		const opts = { chat_id: this.chatId, message_id: msg.message_id };
+		this.bot.editMessageText(`${msg.text?.substring(0, 14)}${this.playerCount}${msg.text?.substring(14 + 1)}\n- ${usr.username}`, opts);
+		if (this.isFull()) {
+			this.bot.editMessageReplyMarkup({} as InlineKeyboardMarkup, opts).catch(() => { }); // remove button
+			this.message(this.chatId, `All players found.\nStarting game.`);
+			this.isActive = true;
+			this.pingCurrentPlayer();
+		}
 	}
 
 	getPlayer(usr: User) {
@@ -184,10 +203,10 @@ export class Game {
 			return;
 		}
 		const resultMsg = player.playCards(cardIndices,
-				this.currRoundType,
-				this.currSetType,
-				this.high)
-		
+			this.currRoundType,
+			this.currSetType,
+			this.high)
+
 		if (player.getCardCount() == 1) {
 			this.broadcast(`${player.username} has one card remaining.`);
 		}
