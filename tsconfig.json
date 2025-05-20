@@ -2,9 +2,11 @@
 "compilerOptions": {
     "strict": true,
     "module": "commonjs",
+    "moduleResolution": "node",
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
+    "esModuleInterop": true,
     "outDir": "./dist",
     "rootDir": "./src/",
     // "sourceMap": true,
