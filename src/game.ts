@@ -1,6 +1,5 @@
 import TelegramBot, { User, Message, InlineKeyboardMarkup, SendMessageOptions } from 'node-telegram-bot-api';
-import { Card } from './card';
-import { ANY, FORCE_START, ROUND_TYPES, SET, SET_TYPES, STRAIGHT, THREE_DIAMONDS } from './constants';
+import { RoundType, SetType, FORCE_START } from './constants';
 import { Deck } from './deck';
 import { Player } from './player';
 import { Round } from './rounds/round';
@@ -17,8 +16,8 @@ export class Game {
 	inversePlayers: number[] = [];
 	playerCount: number = 0;
 	turn: number = MAX_PLAYERS;
-	currRoundType: number = ANY;
-	currSetType: number = STRAIGHT;
+	currRoundType: RoundType = RoundType.ANY;
+	currSetType: SetType = SetType.STRAIGHT;
 	high: Round | undefined = undefined;
 	isActive: boolean = false;
 	endMsg: string = "";
@@ -101,7 +100,7 @@ export class Game {
 			this.bot.editMessageText(`${msg.text?.substring(0, 14)}${this.playerCount}${msg.text?.substring(14 + 1)}\n- ${usr.username}`, opts);
 		}
 		if (this.isFull()) {
-			this.bot.editMessageReplyMarkup({} as InlineKeyboardMarkup, opts).catch(() => { }); // remove button
+			this.bot.editMessageReplyMarkup({ inline_keyboard: [[]] } as InlineKeyboardMarkup, opts); // remove button
 			this.message(this.chatId, `All players found.\nStarting game.`);
 			this.isActive = true;
 			this.pingCurrentPlayer();
@@ -134,9 +133,9 @@ export class Game {
 	showStatus(usr: User) {
 		const player = this.getPlayer(usr);
 		let statusMsg = `Total players: ${this.playerCount}\n`
-		statusMsg += `Current Round Type: ${ROUND_TYPES[this.currRoundType]}\n`;
-		if (this.currRoundType == SET) {
-			statusMsg += `Current Set Type: ${SET_TYPES[this.currSetType]}\n`;
+		statusMsg += `Current Round Type: ${this.currRoundType}\n`;
+		if (this.currRoundType == RoundType.SET) {
+			statusMsg += `Current Set Type: ${this.currSetType}\n`;
 		}
 		statusMsg += `Current Turn: ${this.players[this.turn].username}\n`;
 		statusMsg += `Current High: ${this.high}\n`;
@@ -150,7 +149,6 @@ export class Game {
 	}
 
 	pingCurrentPlayer() {
-		console.log("here");
 		let player = this.players[this.turn];
 		let pingMsg = "It is now your turn!\n"
 		pingMsg += player.showHand();
@@ -187,8 +185,8 @@ export class Game {
 
 	reset() {
 		this.high = undefined;
-		this.currRoundType = ANY;
-		this.currSetType = STRAIGHT;
+		this.currRoundType = RoundType.ANY;
+		this.currSetType = SetType.STRAIGHT;
 	}
 
 	pass(usr: User) {

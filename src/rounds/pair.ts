@@ -1,5 +1,5 @@
 import { Card } from '../card';
-import { PAIR, STRAIGHT } from '../constants';
+import { RoundType, SetType } from '../constants';
 import { Round } from './round';
 
 export class Pair implements Round {
@@ -34,7 +34,7 @@ export class Pair implements Round {
         return pairs;
     }
 
-    canPlay(currSetType: number, high: Pair | undefined) { // overloaded
+    canPlay(currSetType: SetType, high: Pair | undefined) { // overloaded
         return high === undefined || this.weight > high.weight;
     }
 
@@ -51,10 +51,10 @@ export class Pair implements Round {
     }
 
     getRoundType() {
-        return PAIR;
+        return RoundType.PAIR;
     }
 
     getSetType() {
-        return STRAIGHT;
+        return SetType.STRAIGHT;
     }
 }

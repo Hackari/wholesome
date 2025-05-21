@@ -1,5 +1,5 @@
 import { Card } from '../card';
-import { SINGLE, STRAIGHT } from '../constants';
+import { RoundType, SetType } from '../constants';
 import { Round } from './round';
 
 export class Single implements Round {
@@ -12,7 +12,7 @@ export class Single implements Round {
         this.weight = this.card.number;
     }
 
-    canPlay(currSetType: number, high: Single | undefined) {
+    canPlay(currSetType: SetType, high: Single | undefined) {
         return high === undefined || this.weight > high.weight;
     }
 
@@ -29,10 +29,10 @@ export class Single implements Round {
     }
 
     getRoundType() {
-        return SINGLE;
+        return RoundType.SINGLE;
     }
 
     getSetType() {
-        return STRAIGHT;
+        return SetType.STRAIGHT;
     }
 }

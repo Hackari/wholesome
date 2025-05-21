@@ -1,14 +1,5 @@
 import { Card } from '../card';
-import {
-    SET,
-    SET_TYPES,
-    STRAIGHT,
-    FLUSH,
-    FULL_HOUSE,
-    STRAIGHT_FLUSH,
-    ROYAL_FLUSH,
-    INVALID_SET
-} from '../constants';
+import { RoundType, SetType } from '../constants';
 import { Round } from './round';
 
 const ACE = 11;
@@ -16,6 +7,7 @@ const TWO = 12;
 const THREE = 0;
 const FOUR = 1;
 const FIVE = 2;
+const SET_TYPES = ['Straight', 'Flush', 'Full House', 'Straight Flush', 'Royal Flush'];
 
 export class CardSet implements Round {
     card1: Card;
@@ -24,7 +16,7 @@ export class CardSet implements Round {
     card4: Card;
     card5: Card;
     highCard: Card;
-    setType: number;
+    setType: SetType;
 
     weight: number;
 
@@ -36,7 +28,7 @@ export class CardSet implements Round {
         this.card4 = selectedCards[3];
         this.card5 = selectedCards[4];
         this.highCard = this.card5;
-        this.setType = INVALID_SET;
+        this.setType = SetType.INVALID;
         this.weight = this.highCard.number;
     }
 
@@ -58,7 +50,7 @@ export class CardSet implements Round {
         }
 
         combination(0, 5, 5); // 5-combinations of the hand, at most 13C5 = 1287
-        return result.map(a => new CardSet(a)).filter(s => s.getPlayedSet() > INVALID_SET);
+        return result.map(a => new CardSet(a)).filter(s => s.getPlayedSet() !== SetType.INVALID);
     }
 
     isFlush() {
@@ -122,29 +114,29 @@ export class CardSet implements Round {
 
     getPlayedSet() {
         if (this.isRoyalFlush()) { 
-            this.setType = ROYAL_FLUSH;
-            return ROYAL_FLUSH; 
+            this.setType = SetType.ROYAL_FLUSH;
+            return SetType.ROYAL_FLUSH; 
         }
         if (this.isStraightFlush()) { 
-            this.setType = STRAIGHT_FLUSH;
-            return STRAIGHT_FLUSH; 
+            this.setType = SetType.STRAIGHT_FLUSH;
+            return SetType.STRAIGHT_FLUSH; 
         }
         if (this.isFullHouse()) { 
-            this.setType = FULL_HOUSE;
-            return FULL_HOUSE; 
+            this.setType = SetType.FULL_HOUSE;
+            return SetType.FULL_HOUSE; 
         }
         if (this.isFlush()) { 
-            this.setType = FLUSH;
-            return FLUSH; 
+            this.setType = SetType.FLUSH;
+            return SetType.FLUSH; 
         }
         if (this.isStraight()) {
-            this.setType = STRAIGHT;
-            return STRAIGHT; 
+            this.setType = SetType.STRAIGHT;
+            return SetType.STRAIGHT; 
         }
-        return INVALID_SET;
+        return SetType.INVALID;
     }
 
-    canPlay(currSetType: number, high: CardSet | undefined) {
+    canPlay(currSetType: SetType, high: CardSet | undefined) {
         let playedSetType = this.getPlayedSet();
         let isSameSetType = playedSetType >= currSetType;
         let isHigher = high === undefined || this.weight >= high.weight;
@@ -164,7 +156,7 @@ export class CardSet implements Round {
     }
 
     getRoundType() {
-        return SET;
+        return RoundType.SET;
     }
 
     getSetType() {

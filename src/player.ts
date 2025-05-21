@@ -1,6 +1,6 @@
 import { User } from 'node-telegram-bot-api';
 import { Card } from './card';
-import { ANY, INVALID_ROUND, PAIR, ROUND_TYPES, SET, SINGLE, THREE_DIAMONDS } from './constants';
+import { RoundType, SetType, THREE_DIAMONDS } from './constants';
 import { Deck } from './deck';
 import { CardSet } from './rounds/cardset';
 import { Pair } from './rounds/pair';
@@ -72,7 +72,7 @@ export class Player {
         return new Set(list).size === list.length;
     }
 
-    playCards<T extends Round>(cardIndices: number[], currRoundType: number, currSetType: number, high: T | undefined) {
+    playCards<T extends Round>(cardIndices: number[], currRoundType: RoundType, currSetType: SetType, high: T | undefined) {
         let inputLength = cardIndices.length;
         for (let i = 0; i < inputLength; i++) {
             let cardIndex = cardIndices[i]
@@ -85,29 +85,29 @@ export class Player {
             return `You played duplicate cards.`
         }
 
-        let playedRoundType = INVALID_ROUND;
+        let playedRoundType: RoundType;
         let playerMove: Round;
         const selectedCards = cardIndices.map(cardIndex => this.hand[cardIndex - 1]);
         switch (inputLength) {
             case 1:
                 playerMove = new Single(selectedCards);
-                playedRoundType = SINGLE;
+                playedRoundType = RoundType.SINGLE;
                 break;
             case 2:
                 playerMove = new Pair(selectedCards);
-                playedRoundType = PAIR;
+                playedRoundType = RoundType.PAIR;
                 break;
             case 5:
                 playerMove = new CardSet(selectedCards);
-                playedRoundType = SET;
+                playedRoundType = RoundType.SET;
                 break;
             default:
                 return "Invalid amount of cards";
         }
 
-        if (currRoundType != ANY && currRoundType != playedRoundType) {
-            return `The current round type is ${ROUND_TYPES[currRoundType]}. 
-            You played ${ROUND_TYPES[playedRoundType]}.`;
+        if (currRoundType != RoundType.ANY && currRoundType != playedRoundType) {
+            return `The current round type is ${currRoundType}. 
+            You played ${playedRoundType}.`;
         }
 
         if (!(playerMove.canPlay(currSetType, high))) {
