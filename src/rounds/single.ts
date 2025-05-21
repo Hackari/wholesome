@@ -8,9 +8,8 @@ export class Single {
         this.card = card;
     }
 
-    canPlay(currSetType: number, high: Card) {
-        let isHigher = this.card.number >= high.number;
-        return isHigher;
+    canPlay(high: Card | undefined) {
+        return high === undefined || this.card.number > high.number;
     }
 
     toString() {

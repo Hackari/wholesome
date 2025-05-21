@@ -36,6 +36,27 @@ export class CardSet {
         this.setType = INVALID_SET;
     }
 
+    static genSets(hand: Card[]) {
+        const result: Card[][] = [];
+        const current: Card[] = [];
+        const n = hand.length;
+
+        function combination(idx: number, final: number, r: number) {
+            if (current.length === final) { // end case
+                result.push(current);
+                return;
+            }
+            for (let i = idx; i < n - r + 1; i++) {
+                current.push(hand[i]);
+                combination(i + 1, final, r - 1);
+                current.pop();
+            }
+        }
+
+        combination(0, 5, 5); // 5-combinations of the hand, at most 13C5 = 1287
+        return result.map(a => new CardSet(a)).filter(s => s.getPlayedSet() > INVALID_SET);
+    }
+
     isFlush() {
         const suit = this.card1.suit;
         return (
@@ -45,7 +66,6 @@ export class CardSet {
             this.card5.suit === suit
         );
     }
-
 
     isStraight() {
         const v1 = this.card1.value;

@@ -4,7 +4,7 @@ import { ANY, FORCE_START, ROUND_TYPES, SET, SET_TYPES, STRAIGHT, THREE_DIAMONDS
 import { Deck } from './deck';
 import { Player } from './player';
 
-const MAX_PLAYERS = 2;
+const MAX_PLAYERS = 1;
 
 
 export class Game {
