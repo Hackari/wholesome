@@ -1,12 +1,12 @@
 export class Card {
     number: number;
-    value: number;
+    rank: number;
     suit: number;
 
     constructor(number: number) {
         this.number = number;
 
-        this.value = Math.floor(number / 4);
+        this.rank = Math.floor(number / 4);
         this.suit = number % 4;
     }
 
@@ -16,7 +16,7 @@ export class Card {
 
     getValue() {
         const values = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'];
-        return values[this.value];
+        return values[this.rank];
     }
 
     getSuit() {
@@ -34,14 +34,14 @@ export class Card {
         } else if (card1.suit > card2.suit) {
             return 1;
         } else {
-            return card1.value - card2.value;
+            return card1.rank - card2.rank;
         }
     }
 
     static compareByValueThenSuit(card1: Card, card2: Card) {
-        if (card1.value < card2.value) {
+        if (card1.rank < card2.rank) {
             return -1;
-        } else if (card1.value >= card2.value) {
+        } else if (card1.rank >= card2.rank) {
             return 1;
         } else {
             return card1.suit - card2.suit;

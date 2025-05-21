@@ -1,7 +1,8 @@
 import { Card } from '../card';
 import { PAIR, STRAIGHT } from '../constants';
+import { Round } from './round';
 
-export class Pair {
+export class Pair implements Round {
     card1: Card;
     card2: Card;
 
@@ -33,7 +34,7 @@ export class Pair {
         return pairs;
     }
 
-    canPlay(high: Pair | undefined) {
+    canPlay(currSetType: number, high: Pair | undefined) { // overloaded
         return high === undefined || this.weight > high.weight;
     }
 

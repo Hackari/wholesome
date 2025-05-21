@@ -9,6 +9,7 @@ import {
     ROYAL_FLUSH,
     INVALID_SET
 } from '../constants';
+import { Round } from './round';
 
 const ACE = 11;
 const TWO = 12;
@@ -16,7 +17,7 @@ const THREE = 0;
 const FOUR = 1;
 const FIVE = 2;
 
-export class CardSet {
+export class CardSet implements Round {
     card1: Card;
     card2: Card;
     card3: Card;
@@ -24,6 +25,8 @@ export class CardSet {
     card5: Card;
     highCard: Card;
     setType: number;
+
+    weight: number;
 
     constructor(selectedCards: Card[]) {
         selectedCards.sort(Card.compareByValueThenSuit);
@@ -34,6 +37,7 @@ export class CardSet {
         this.card5 = selectedCards[4];
         this.highCard = this.card5;
         this.setType = INVALID_SET;
+        this.weight = this.highCard.number;
     }
 
     static genSets(hand: Card[]) {
@@ -68,11 +72,11 @@ export class CardSet {
     }
 
     isStraight() {
-        const v1 = this.card1.value;
-        const v2 = this.card2.value;
-        const v3 = this.card3.value;
-        const v4 = this.card4.value;
-        const v5 = this.card5.value;
+        const v1 = this.card1.rank;
+        const v2 = this.card2.rank;
+        const v3 = this.card3.rank;
+        const v4 = this.card4.rank;
+        const v5 = this.card5.rank;
 
         if (v2 === v1 + 1 && v3 === v2 + 1 &&
             v4 === v3 + 1 && v5 === v4 + 1) {
@@ -93,16 +97,16 @@ export class CardSet {
     }
 
     isRoyalFlush() {
-        return this.isStraightFlush() && this.card5.value == ACE;
+        return this.isStraightFlush() && this.card5.rank == ACE;
 
     }
 
     isFullHouse() {
-        const v1 = this.card1.value;
-        const v2 = this.card2.value;
-        const v3 = this.card3.value;
-        const v4 = this.card4.value;
-        const v5 = this.card5.value;
+        const v1 = this.card1.rank;
+        const v2 = this.card2.rank;
+        const v3 = this.card3.rank;
+        const v4 = this.card4.rank;
+        const v5 = this.card5.rank;
         
         const isTripleFirst = (v1 === v2 && v2 === v3) && (v4 === v5);
         
@@ -140,10 +144,10 @@ export class CardSet {
         return INVALID_SET;
     }
 
-    canPlay(currSetType: number, high: Card) {
+    canPlay(currSetType: number, high: CardSet | undefined) {
         let playedSetType = this.getPlayedSet();
         let isSameSetType = playedSetType >= currSetType;
-        let isHigher = this.highCard.number >= high.number;
+        let isHigher = high === undefined || this.weight >= high.weight;
         return isSameSetType && isHigher;
     }
 

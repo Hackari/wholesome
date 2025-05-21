@@ -3,6 +3,7 @@ import { Card } from './card';
 import { ANY, FORCE_START, ROUND_TYPES, SET, SET_TYPES, STRAIGHT, THREE_DIAMONDS } from './constants';
 import { Deck } from './deck';
 import { Player } from './player';
+import { Round } from './rounds/round';
 
 const MAX_PLAYERS = 1;
 
@@ -18,7 +19,7 @@ export class Game {
 	turn: number = MAX_PLAYERS;
 	currRoundType: number = ANY;
 	currSetType: number = STRAIGHT;
-	high: Card = new Card(THREE_DIAMONDS);
+	high: Round | undefined = undefined;
 	isActive: boolean = false;
 	endMsg: string = "";
 	passCount: number = 0;
@@ -95,15 +96,15 @@ export class Game {
 	}
 
 	join(usr: User, msg: Message) {
+		const opts = { chat_id: this.chatId, message_id: msg.message_id };
 		if (this.addPlayer(usr)) {
-			const opts = { chat_id: this.chatId, message_id: msg.message_id };
 			this.bot.editMessageText(`${msg.text?.substring(0, 14)}${this.playerCount}${msg.text?.substring(14 + 1)}\n- ${usr.username}`, opts);
-			if (this.isFull()) {
-				this.bot.editMessageReplyMarkup({} as InlineKeyboardMarkup, opts).catch(() => { }); // remove button
-				this.message(this.chatId, `All players found.\nStarting game.`);
-				this.isActive = true;
-				this.pingCurrentPlayer();
-			}
+		}
+		if (this.isFull()) {
+			this.bot.editMessageReplyMarkup({} as InlineKeyboardMarkup, opts).catch(() => { }); // remove button
+			this.message(this.chatId, `All players found.\nStarting game.`);
+			this.isActive = true;
+			this.pingCurrentPlayer();
 		}
 	}
 
@@ -149,10 +150,18 @@ export class Game {
 	}
 
 	pingCurrentPlayer() {
+		console.log("here");
 		let player = this.players[this.turn];
 		let pingMsg = "It is now your turn!\n"
 		pingMsg += player.showHand();
-		this.message(player.userId, pingMsg);
+		this.message(player.userId, pingMsg, {
+			reply_markup: {
+				keyboard: [
+					[{ text: "1" }, { text: "2" }],
+					[{ text: "pass" }]
+				]
+			}
+		});
 	}
 
 	isPlayerTurn(player: Player) {
@@ -177,7 +186,7 @@ export class Game {
 	}
 
 	reset() {
-		this.high = new Card(THREE_DIAMONDS);
+		this.high = undefined;
 		this.currRoundType = ANY;
 		this.currSetType = STRAIGHT;
 	}
@@ -217,7 +226,7 @@ export class Game {
 		if (typeof resultMsg === 'string') {
 			this.message(player.userId, resultMsg);
 		} else {
-			this.high = resultMsg.getHighest();
+			this.high = resultMsg;
 			this.currRoundType = resultMsg.getRoundType();
 			this.currSetType = resultMsg.getSetType();
 			this.broadcast(`${player.username} played ${resultMsg}`);

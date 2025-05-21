@@ -5,6 +5,7 @@ import { Deck } from './deck';
 import { CardSet } from './rounds/cardset';
 import { Pair } from './rounds/pair';
 import { Single } from './rounds/single';
+import { Round } from './rounds/round';
 
 export class Player {
     first: boolean = false;
@@ -71,7 +72,7 @@ export class Player {
         return new Set(list).size === list.length;
     }
 
-    playCards(cardIndices: number[], currRoundType: number, currSetType: number, high: Card) {
+    playCards<T extends Round>(cardIndices: number[], currRoundType: number, currSetType: number, high: T | undefined) {
         let inputLength = cardIndices.length;
         for (let i = 0; i < inputLength; i++) {
             let cardIndex = cardIndices[i]
@@ -85,11 +86,11 @@ export class Player {
         }
 
         let playedRoundType = INVALID_ROUND;
-        let playerMove = null;
+        let playerMove: Round;
         const selectedCards = cardIndices.map(cardIndex => this.hand[cardIndex - 1]);
         switch (inputLength) {
             case 1:
-                playerMove = new Single(selectedCards[0]);
+                playerMove = new Single(selectedCards);
                 playedRoundType = SINGLE;
                 break;
             case 2:

@@ -1,15 +1,19 @@
 import { Card } from '../card';
 import { SINGLE, STRAIGHT } from '../constants';
+import { Round } from './round';
 
-export class Single {
+export class Single implements Round {
     card: Card;
     
-    constructor(card: Card) {
-        this.card = card;
+    weight: number;
+
+    constructor(cards: Card[]) {
+        this.card = cards[0];
+        this.weight = this.card.number;
     }
 
-    canPlay(high: Card | undefined) {
-        return high === undefined || this.card.number > high.number;
+    canPlay(currSetType: number, high: Single | undefined) {
+        return high === undefined || this.weight > high.weight;
     }
 
     toString() {
