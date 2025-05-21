@@ -55,6 +55,6 @@ export class Pair implements Round {
     }
 
     getSetType() {
-        return SetType.STRAIGHT;
+        return SetType.INVALID;
     }
 }

@@ -33,6 +33,6 @@ export class Single implements Round {
     }
 
     getSetType() {
-        return SetType.STRAIGHT;
+        return SetType.INVALID;
     }
 }
