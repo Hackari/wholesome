@@ -77,19 +77,18 @@ export class CardSet implements Round {
 			this.weight = this.card5.number; // rank then suit 
 			return true;
 		}
-
-		// special case: A 2 3 4 5
-		if (v4 == ACE && v5 == TWO && v1 == THREE && v2 == FOUR && v3 == FIVE) {
-			this.weight = this.card3.number;
-			return true;
+		if (v5 === TWO) {
+			// special case: A 2 3 4 5
+			if (v4 == ACE && v1 == THREE && v2 == FOUR && v3 == FIVE) {
+				this.weight = this.card3.number;
+				return true;
+			}
+			// special case: 2 3 4 5 6
+			if (v1 == THREE && v2 == FOUR && v3 == FIVE && v4 == SIX) {
+				this.weight = this.card4.number;
+				return true;
+			}
 		}
-
-		// special case: 2 3 4 5 6
-		if (v5 == TWO && v1 == THREE && v2 == FOUR && v3 == FIVE && v4 == SIX) {
-			this.weight = this.card4.number;
-			return true;
-		}
-
 		return false
 	}
 
@@ -100,11 +99,11 @@ export class CardSet implements Round {
 		const v4 = this.card4.rank;
 		const v5 = this.card5.rank;
 
-		if ((v1 === v2 && v2 === v3) && (v4 === v5)) {
+		if ((v1 === v3) && (v4 === v5)) {
 			this.weight = v1;
 			return true;
 		}
-		if ((v1 === v2) && (v3 === v4 && v4 === v5)) {
+		if ((v1 === v2) && (v3 === v5)) {
 			this.weight = v5;
 			return true;
 		}
@@ -114,15 +113,14 @@ export class CardSet implements Round {
 	isFourOfAKind() {
 		const v1 = this.card1.rank;
 		const v2 = this.card2.rank;
-		const v3 = this.card3.rank;
 		const v4 = this.card4.rank;
 		const v5 = this.card5.rank;
 
-		if (v1 === v2 && v2 === v3 && v3 === v4) {
+		if (v1 === v4) {
 			this.weight = v1;
 			return true;
 		}
-		if (v2 === v3 && v3 === v4 && v4 === v5) {
+		if (v2 === v5) {
 			this.weight = v5;
 			return true;
 		}
@@ -150,7 +148,7 @@ export class CardSet implements Round {
 	}
 
 	canPlay(high: CardSet | undefined) {
-	  this.checkTypeWeight();
+		this.checkTypeWeight();
 		return high === undefined || this.weight >= high.weight;
 	}
 
