@@ -1,9 +1,12 @@
 import { Card } from '../card';
-import { PAIR, STRAIGHT } from '../constants';
+import { RoundType, SetType } from '../constants';
+import { Round } from './round';
 
-export class Pair {
+export class Pair implements Round {
     card1: Card;
     card2: Card;
+
+    weight: number;
 
     constructor(selectedCards: Card[]) {
         let card1 = selectedCards[0];
@@ -15,12 +18,24 @@ export class Pair {
             this.card2 = card1;
             this.card1 = card2;
         }
+        this.weight = card1.number;
     }
 
-    canPlay(currSetType: number, high: Card) {
-        let isHigher = this.card1.number >= high.number;
-        let isSameNumber = this.card1.value == this.card2.value;
-        return isSameNumber && isHigher;
+    static genPairs(hand: Card[]) {
+        let pairs: Pair[] = [];
+        const n = hand.length;
+        for (let i = 0; i < n; i++) { // loop will not run if hand is empty
+            const target = hand.shift() as Card; // hand should not contain undefined
+            const matching = hand.filter(c => c.number == target.number);
+            if (matching.length > 0) {
+                pairs.push(...matching.map(c => new Pair([c, target])));
+            }
+        }
+        return pairs;
+    }
+
+    canPlay(currSetType: SetType, high: Pair | undefined) { // overloaded
+        return high === undefined || this.weight > high.weight;
     }
 
     toString() {
@@ -36,10 +51,10 @@ export class Pair {
     }
 
     getRoundType() {
-        return PAIR;
+        return RoundType.PAIR;
     }
 
     getSetType() {
-        return STRAIGHT;
+        return SetType.INVALID;
     }
 }

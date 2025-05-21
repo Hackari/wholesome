@@ -12,6 +12,7 @@
     // "sourceMap": true,
     // "sourceRoot": "./src/",
     // "allowJs": true,
+	"skipLibCheck": true // broken types in request module
 },
 "include": ["src/**/*"],
 "exclude": ["config.js"]

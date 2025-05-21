@@ -1,10 +1,10 @@
 import TelegramBot, { User, Message, InlineKeyboardMarkup, SendMessageOptions } from 'node-telegram-bot-api';
-import { Card } from './card';
-import { ANY, FORCE_START, ROUND_TYPES, SET, SET_TYPES, STRAIGHT, THREE_DIAMONDS } from './constants';
+import { RoundType, SetType, FORCE_START } from './constants';
 import { Deck } from './deck';
 import { Player } from './player';
+import { Round } from './rounds/round';
 
-const MAX_PLAYERS = 2;
+const MAX_PLAYERS = 1;
 
 
 export class Game {
@@ -16,9 +16,9 @@ export class Game {
 	inversePlayers: number[] = [];
 	playerCount: number = 0;
 	turn: number = MAX_PLAYERS;
-	currRoundType: number = ANY;
-	currSetType: number = STRAIGHT;
-	high: Card = new Card(THREE_DIAMONDS);
+	currRoundType: RoundType = RoundType.ANY;
+	currSetType: SetType = SetType.STRAIGHT;
+	high: Round | undefined = undefined;
 	isActive: boolean = false;
 	endMsg: string = "";
 	passCount: number = 0;
@@ -95,15 +95,15 @@ export class Game {
 	}
 
 	join(usr: User, msg: Message) {
+		const opts = { chat_id: this.chatId, message_id: msg.message_id };
 		if (this.addPlayer(usr)) {
-			const opts = { chat_id: this.chatId, message_id: msg.message_id };
 			this.bot.editMessageText(`${msg.text?.substring(0, 14)}${this.playerCount}${msg.text?.substring(14 + 1)}\n- ${usr.username}`, opts);
-			if (this.isFull()) {
-				this.bot.editMessageReplyMarkup({} as InlineKeyboardMarkup, opts).catch(() => { }); // remove button
-				this.message(this.chatId, `All players found.\nStarting game.`);
-				this.isActive = true;
-				this.pingCurrentPlayer();
-			}
+		}
+		if (this.isFull()) {
+			this.bot.editMessageReplyMarkup({ inline_keyboard: [[]] } as InlineKeyboardMarkup, opts); // remove button
+			this.message(this.chatId, `All players found.\nStarting game.`);
+			this.isActive = true;
+			this.pingCurrentPlayer();
 		}
 	}
 
@@ -133,9 +133,9 @@ export class Game {
 	showStatus(usr: User) {
 		const player = this.getPlayer(usr);
 		let statusMsg = `Total players: ${this.playerCount}\n`
-		statusMsg += `Current Round Type: ${ROUND_TYPES[this.currRoundType]}\n`;
-		if (this.currRoundType == SET) {
-			statusMsg += `Current Set Type: ${SET_TYPES[this.currSetType]}\n`;
+		statusMsg += `Current Round Type: ${this.currRoundType}\n`;
+		if (this.currRoundType == RoundType.SET) {
+			statusMsg += `Current Set Type: ${this.currSetType}\n`;
 		}
 		statusMsg += `Current Turn: ${this.players[this.turn].username}\n`;
 		statusMsg += `Current High: ${this.high}\n`;
@@ -152,7 +152,14 @@ export class Game {
 		let player = this.players[this.turn];
 		let pingMsg = "It is now your turn!\n"
 		pingMsg += player.showHand();
-		this.message(player.userId, pingMsg);
+		this.message(player.userId, pingMsg, {
+			reply_markup: {
+				keyboard: [
+					[{ text: "1" }, { text: "2" }],
+					[{ text: "pass" }]
+				]
+			}
+		});
 	}
 
 	isPlayerTurn(player: Player) {
@@ -177,9 +184,9 @@ export class Game {
 	}
 
 	reset() {
-		this.high = new Card(THREE_DIAMONDS);
-		this.currRoundType = ANY;
-		this.currSetType = STRAIGHT;
+		this.high = undefined;
+		this.currRoundType = RoundType.ANY;
+		this.currSetType = SetType.STRAIGHT;
 	}
 
 	pass(usr: User) {
@@ -217,7 +224,7 @@ export class Game {
 		if (typeof resultMsg === 'string') {
 			this.message(player.userId, resultMsg);
 		} else {
-			this.high = resultMsg.getHighest();
+			this.high = resultMsg;
 			this.currRoundType = resultMsg.getRoundType();
 			this.currSetType = resultMsg.getSetType();
 			this.broadcast(`${player.username} played ${resultMsg}`);

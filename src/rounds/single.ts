@@ -1,16 +1,19 @@
 import { Card } from '../card';
-import { SINGLE, STRAIGHT } from '../constants';
+import { RoundType, SetType } from '../constants';
+import { Round } from './round';
 
-export class Single {
+export class Single implements Round {
     card: Card;
     
-    constructor(card: Card) {
-        this.card = card;
+    weight: number;
+
+    constructor(cards: Card[]) {
+        this.card = cards[0];
+        this.weight = this.card.number;
     }
 
-    canPlay(currSetType: number, high: Card) {
-        let isHigher = this.card.number >= high.number;
-        return isHigher;
+    canPlay(currSetType: SetType, high: Single | undefined) {
+        return high === undefined || this.weight > high.weight;
     }
 
     toString() {
@@ -26,10 +29,10 @@ export class Single {
     }
 
     getRoundType() {
-        return SINGLE;
+        return RoundType.SINGLE;
     }
 
     getSetType() {
-        return STRAIGHT;
+        return SetType.INVALID;
     }
 }
