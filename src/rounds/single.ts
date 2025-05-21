@@ -12,7 +12,7 @@ export class Single implements Round {
         this.weight = this.card.number;
     }
 
-    canPlay(currSetType: SetType, high: Single | undefined) {
+    canPlay(high: Single | undefined) {
         return high === undefined || this.weight > high.weight;
     }
 

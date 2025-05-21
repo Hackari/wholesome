@@ -76,13 +76,17 @@ Ranked from lowest to highest:
 
 ### 3. **Full House**
 - 3-of-a-kind + pair
-- Value determined by the 3-of-a-kind part
+- Value determined by the rand of the 3-of-a-kind
 
-### 4. **Straight Flush**
-- 5 consecutive cards of the same suit
+### 4. **Four of a Kind**
+- 4-of-a-kind + card
+- Value determined by the rank of the 4-of-a-kind
+
+### 5. **Straight Flush**
+- 5 consecutive cards of the same suit, straight and flush
 - Value determined by the **suit**
 
-### 5. **Royal Flush**
+### 6. **Royal Flush**
 - Must be exactly: `10-J-Q-K-A` of same suit
 - Always ranked higher than any other straight flush
 

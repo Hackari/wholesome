@@ -7,159 +7,170 @@ const TWO = 12;
 const THREE = 0;
 const FOUR = 1;
 const FIVE = 2;
+const SIX = 3;
 const SET_TYPES = ['Straight', 'Flush', 'Full House', 'Straight Flush', 'Royal Flush'];
 
 export class CardSet implements Round {
-    card1: Card;
-    card2: Card;
-    card3: Card;
-    card4: Card;
-    card5: Card;
-    highCard: Card;
-    setType: SetType;
+	card1: Card;
+	card2: Card;
+	card3: Card;
+	card4: Card;
+	card5: Card;
+	setType: SetType = SetType.INVALID;
 
-    weight: number;
+	weight: number = 0;
 
-    constructor(selectedCards: Card[]) {
-        selectedCards.sort(Card.compareByValueThenSuit);
-        this.card1 = selectedCards[0];
-        this.card2 = selectedCards[1];
-        this.card3 = selectedCards[2];
-        this.card4 = selectedCards[3];
-        this.card5 = selectedCards[4];
-        this.highCard = this.card5;
-        this.setType = SetType.INVALID;
-        this.weight = this.highCard.number;
-    }
+	constructor(selectedCards: Card[]) {
+		selectedCards.sort(Card.compareByValueThenSuit);
+		this.card1 = selectedCards[0];
+		this.card2 = selectedCards[1];
+		this.card3 = selectedCards[2];
+		this.card4 = selectedCards[3];
+		this.card5 = selectedCards[4];
+		// this.weight = this.card5.rank;
+	}
 
-    static genSets(hand: Card[]) {
-        const result: Card[][] = [];
-        const current: Card[] = [];
-        const n = hand.length;
+	static genSets(hand: Card[]) {
+		const result: Card[][] = [];
+		const current: Card[] = [];
+		const n = hand.length;
 
-        function combination(idx: number, final: number, r: number) {
-            if (current.length === final) { // end case
-                result.push(current);
-                return;
-            }
-            for (let i = idx; i < n - r + 1; i++) {
-                current.push(hand[i]);
-                combination(i + 1, final, r - 1);
-                current.pop();
-            }
-        }
+		function combination(idx: number, final: number, r: number) {
+			if (current.length === final) { // end case
+				result.push(current);
+				return;
+			}
+			for (let i = idx; i < n - r + 1; i++) {
+				current.push(hand[i]);
+				combination(i + 1, final, r - 1);
+				current.pop();
+			}
+		}
 
-        combination(0, 5, 5); // 5-combinations of the hand, at most 13C5 = 1287
-        return result.map(a => new CardSet(a)).filter(s => s.getPlayedSet() !== SetType.INVALID);
-    }
+		combination(0, 5, 5); // 5-combinations of the hand, at most 13C5 = 1287
+		return result.map(a => new CardSet(a)).filter(s => s.checkTypeWeight() !== SetType.INVALID);
+	}
 
-    isFlush() {
-        const suit = this.card1.suit;
-        return (
-            this.card2.suit === suit &&
-            this.card3.suit === suit &&
-            this.card4.suit === suit &&
-            this.card5.suit === suit
-        );
-    }
+	isFlush() {
+		const suit = this.card1.suit;
+		if (
+			this.card2.suit === suit &&
+			this.card3.suit === suit &&
+			this.card4.suit === suit &&
+			this.card5.suit === suit
+		) {
+			this.weight = suit * this.card5.rank; // suit then rank
+			return true
+		}
+		return false;
+	}
 
-    isStraight() {
-        const v1 = this.card1.rank;
-        const v2 = this.card2.rank;
-        const v3 = this.card3.rank;
-        const v4 = this.card4.rank;
-        const v5 = this.card5.rank;
+	isStraight() {
+		// weird rule of comparing by overlap is impractical to implement right now
+		const v1 = this.card1.rank;
+		const v2 = this.card2.rank;
+		const v3 = this.card3.rank;
+		const v4 = this.card4.rank;
+		const v5 = this.card5.rank;
 
-        if (v2 === v1 + 1 && v3 === v2 + 1 &&
-            v4 === v3 + 1 && v5 === v4 + 1) {
-                return true;
-        }
+		if (v2 === v1 + 1 && v3 === v2 + 1 && v4 === v3 + 1 && v5 === v4 + 1) {
+			this.weight = this.card5.number; // rank then suit 
+			return true;
+		}
 
-        if (v4 == ACE && v5 == TWO &&
-            v1 == THREE && v2 == FOUR && v3 == FIVE) {
-                return true;
-            }
-            
-        return false
-    }
+		// special case: A 2 3 4 5
+		if (v4 == ACE && v5 == TWO && v1 == THREE && v2 == FOUR && v3 == FIVE) {
+			this.weight = this.card3.number;
+			return true;
+		}
 
+		// special case: 2 3 4 5 6
+		if (v5 == TWO && v1 == THREE && v2 == FOUR && v3 == FIVE && v4 == SIX) {
+			this.weight = this.card4.number;
+			return true;
+		}
 
-    isStraightFlush() {
-        return this.isStraight() && this.isFlush();
-    }
+		return false
+	}
 
-    isRoyalFlush() {
-        return this.isStraightFlush() && this.card5.rank == ACE;
+	isFullHouse() {
+		const v1 = this.card1.rank;
+		const v2 = this.card2.rank;
+		const v3 = this.card3.rank;
+		const v4 = this.card4.rank;
+		const v5 = this.card5.rank;
 
-    }
+		if ((v1 === v2 && v2 === v3) && (v4 === v5)) {
+			this.weight = v1;
+			return true;
+		}
+		if ((v1 === v2) && (v3 === v4 && v4 === v5)) {
+			this.weight = v5;
+			return true;
+		}
+		return false;
+	}
 
-    isFullHouse() {
-        const v1 = this.card1.rank;
-        const v2 = this.card2.rank;
-        const v3 = this.card3.rank;
-        const v4 = this.card4.rank;
-        const v5 = this.card5.rank;
-        
-        const isTripleFirst = (v1 === v2 && v2 === v3) && (v4 === v5);
-        
-        if (isTripleFirst) {
-            this.highCard = this.card3;
-            return true;
-        }
+	isFourOfAKind() {
+		const v1 = this.card1.rank;
+		const v2 = this.card2.rank;
+		const v3 = this.card3.rank;
+		const v4 = this.card4.rank;
+		const v5 = this.card5.rank;
 
-        const isTripleLast  = (v1 === v2) && (v3 === v4 && v4 === v5);
+		if (v1 === v2 && v2 === v3 && v3 === v4) {
+			this.weight = v1;
+			return true;
+		}
+		if (v2 === v3 && v3 === v4 && v4 === v5) {
+			this.weight = v5;
+			return true;
+		}
+		return false;
+	}
 
-        return isTripleLast;
-    }
+	checkTypeWeight() {
+		if (this.isFourOfAKind()) {
+			this.setType = SetType.FOUR_OF_KIND;
+		}
+		if (this.isFullHouse()) {
+			this.setType = SetType.FULL_HOUSE;
+		}
+		if (this.isFlush()) {
+			if (this.isStraight()) {
+				this.setType = SetType.STRAIGHT_FLUSH;
+			} else {
+				this.setType = SetType.FLUSH;
+			}
+		} else if (this.isStraight()) {
+			this.setType = SetType.STRAIGHT;
+		}
+		this.weight += this.setType * 100;
+		return this.setType;
+	}
 
-    getPlayedSet() {
-        if (this.isRoyalFlush()) { 
-            this.setType = SetType.ROYAL_FLUSH;
-            return SetType.ROYAL_FLUSH; 
-        }
-        if (this.isStraightFlush()) { 
-            this.setType = SetType.STRAIGHT_FLUSH;
-            return SetType.STRAIGHT_FLUSH; 
-        }
-        if (this.isFullHouse()) { 
-            this.setType = SetType.FULL_HOUSE;
-            return SetType.FULL_HOUSE; 
-        }
-        if (this.isFlush()) { 
-            this.setType = SetType.FLUSH;
-            return SetType.FLUSH; 
-        }
-        if (this.isStraight()) {
-            this.setType = SetType.STRAIGHT;
-            return SetType.STRAIGHT; 
-        }
-        return SetType.INVALID;
-    }
+	canPlay(high: CardSet | undefined) {
+	  this.checkTypeWeight();
+		return high === undefined || this.weight >= high.weight;
+	}
 
-    canPlay(currSetType: SetType, high: CardSet | undefined) {
-        let playedSetType = this.getPlayedSet();
-        let isSameSetType = playedSetType >= currSetType;
-        let isHigher = high === undefined || this.weight >= high.weight;
-        return isSameSetType && isHigher;
-    }
+	toString() {
+		return `a ${SET_TYPES[this.setType]} of ${this.card1}, ${this.card2}, ${this.card3}, ${this.card4}, and ${this.card5}`;
+	}
 
-    toString() {
-        return `a ${SET_TYPES[this.setType]} of ${this.card1}, ${this.card2}, ${this.card3}, ${this.card4}, and ${this.card5}`;
-    }
+	toStringAsHand() {
+		return `${this.card1}, ${this.card2}, ${this.card3}, ${this.card4}, and ${this.card5}`;
+	}
 
-    toStringAsHand() {
-        return `${this.card1}, ${this.card2}, ${this.card3}, ${this.card4}, and ${this.card5}`;
-    }
+	getHighest() { // consider removing
+		return this.card5;
+	}
 
-    getHighest() {
-        return this.highCard;
-    }
+	getRoundType() {
+		return RoundType.SET;
+	}
 
-    getRoundType() {
-        return RoundType.SET;
-    }
-
-    getSetType() {
-        return this.setType;
-    }
+	getSetType() {
+		return this.setType;
+	}
 }
