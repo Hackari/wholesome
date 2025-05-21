@@ -59,7 +59,7 @@ export class CardSet implements Round {
 			this.card4.suit === suit &&
 			this.card5.suit === suit
 		) {
-			this.weight = suit * this.card5.rank; // suit then rank
+			this.weight = this.card5.number;
 			return true
 		}
 		return false;
