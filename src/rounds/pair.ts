@@ -34,7 +34,7 @@ export class Pair implements Round {
         return pairs;
     }
 
-    canPlay(currSetType: SetType, high: Pair | undefined) { // overloaded
+    canPlay(high: Pair | undefined) { // overloaded
         return high === undefined || this.weight > high.weight;
     }
 

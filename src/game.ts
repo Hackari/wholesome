@@ -138,7 +138,7 @@ export class Game {
 			statusMsg += `Current Set Type: ${this.currSetType}\n`;
 		}
 		statusMsg += `Current Turn: ${this.players[this.turn].username}\n`;
-		statusMsg += `Current High: ${this.high}\n`;
+		statusMsg += `Current High: ${this.high?.toString()}\n`;
 
 		for (let i = 0; i < this.playerCount; i++) {
 			const player = this.players[i];

@@ -110,7 +110,7 @@ export class Player {
             You played ${playedRoundType}.`;
         }
 
-        if (!(playerMove.canPlay(currSetType, high))) {
+        if (!(playerMove.canPlay(high))) {
             return `You tried to play ${playerMove.toStringAsHand()}`;
         }
 

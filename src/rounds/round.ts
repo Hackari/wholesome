@@ -5,7 +5,7 @@ import { RoundType, SetType } from '../constants';
 export interface Round {
     weight: number;
 
-    canPlay(currSetType: SetType, high: Round | undefined): boolean;
+    canPlay(high: Round | undefined): boolean;
     toString(): string;
     toStringAsHand(): string;
     getHighest(): Card;
