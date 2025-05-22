@@ -30,9 +30,9 @@ bot.on('callback_query', (query: CallbackQuery) => {
 	}
 });
 
-bot.onText(/\/join/, (msg: Message) => {
-	Game.getGameByChatId(msg.chat.id).addPlayer(msg.from as User);
-});
+// bot.onText(/\/join/, (msg: Message) => {
+// 	 Game.getGameByChatId(msg.chat.id).addPlayer(msg.from as User);
+// });
 
 bot.onText(/hand/, (msg: Message) => {
 	Game.getGameByUserId(msg.chat.id).showHand(msg.from as User);
@@ -46,7 +46,8 @@ bot.onText(/status/, (msg: Message) => {
 	Game.getGameByUserId(msg.chat.id).showStatus(msg.from as User);
 });
 
-bot.onText(/play/, (msg: Message) => {
+
+bot.onText(/(1[0-3])|\d/, (msg: Message) => {
 	Game.getGameByUserId(msg.chat.id).play(msg.from as User, msg.text as string);
 });
 

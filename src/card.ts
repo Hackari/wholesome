@@ -10,7 +10,7 @@ export class Card {
         this.suit = number % 4;
     }
 
-    isCard(number: number) {
+    isCardNumber(number: number) {
         return this.number == number;
     }
 
