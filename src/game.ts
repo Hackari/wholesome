@@ -190,7 +190,6 @@ export class Game {
 	reset() { // reshuffle logic
 		this.high = undefined;
 		this.currRoundType = RoundType.ANY;
-		this.currSetType = SetType.STRAIGHT;
 		this.deck.shuffle();
 		this.players.forEach(p => p.newHand());
 	}
@@ -234,6 +233,7 @@ export class Game {
 			}
 		}
 	}
+
 	pass(usr: User) {
 		const player = this.getPlayer(usr);
 		if (!this.isPlayerTurn(player)) {
@@ -259,7 +259,6 @@ export class Game {
 		}
 		const resultMsg = player.playCards(cardIndices,
 			this.currRoundType,
-			this.currSetType,
 			this.high)
 
 		if (player.getCardCount() == 1) {
@@ -271,7 +270,6 @@ export class Game {
 		} else {
 			this.high = resultMsg;
 			this.currRoundType = resultMsg.getRoundType();
-			this.currSetType = resultMsg.getSetType();
 			this.broadcast(`${player.username} played ${resultMsg}`);
 			this.nextTurn();
 		}
