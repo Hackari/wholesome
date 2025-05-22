@@ -17,7 +17,6 @@ export class Game {
 	playerCount: number = 0;
 	turn: number = MAX_PLAYERS;
 	currRoundType: RoundType = RoundType.ANY;
-	currSetType: SetType = SetType.STRAIGHT;
 	high: Round | undefined = undefined;
 	isActive: boolean = false;
 	endMsg: string = "";
@@ -189,10 +188,12 @@ export class Game {
 		this.currentPlayerTurn();
 	}
 
-	reset() {
+	reset() { // reshuffle logic
 		this.high = undefined;
 		this.currRoundType = RoundType.ANY;
 		this.currSetType = SetType.STRAIGHT;
+		this.deck.shuffle();
+		this.players.forEach(p => p.newHand());
 	}
 
 	pass(usr: User) {
