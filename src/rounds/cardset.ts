@@ -8,7 +8,7 @@ const THREE = 0;
 const FOUR = 1;
 const FIVE = 2;
 const SIX = 3;
-const SET_TYPES = ['Straight', 'Flush', 'Full House', 'Straight Flush', 'Royal Flush'];
+const SET_TYPES = ['Straight', 'Flush', 'Full House', 'Four of a Kind', 'Straight Flush'];
 
 export class CardSet implements Round {
 	card1: Card;
@@ -37,7 +37,7 @@ export class CardSet implements Round {
 
 		function combination(idx: number, final: number, r: number) {
 			if (current.length === final) { // end case
-				result.push(current);
+				result.push([...current]);
 				return;
 			}
 			for (let i = idx; i < n - r + 1; i++) {
