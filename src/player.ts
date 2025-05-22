@@ -1,6 +1,6 @@
 import { User } from 'node-telegram-bot-api';
 import { Card } from './card';
-import { RoundType, SetType, THREE_DIAMONDS, TWO_SPADES } from './constants';
+import { RoundType, THREE_DIAMONDS, TWO_SPADES } from './constants';
 import { Deck } from './deck';
 import { CardSet } from './rounds/cardset';
 import { Pair } from './rounds/pair';
@@ -93,7 +93,7 @@ export class Player {
         return new Set(list).size === list.length;
     }
 
-    playCards(cardIndices: number[], currRoundType: RoundType, currSetType: SetType, high: Round | undefined) {
+    playCards(cardIndices: number[], currRoundType: RoundType, high: Round | undefined) {
         let inputLength = cardIndices.length;
         for (let i = 0; i < inputLength; i++) {
             let cardIndex = cardIndices[i]
