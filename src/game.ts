@@ -1,5 +1,5 @@
 import TelegramBot, { User, Message, InlineKeyboardMarkup, SendMessageOptions } from 'node-telegram-bot-api';
-import { RoundType, SetType, FORCE_START } from './constants';
+import { RoundType, FORCE_START } from './constants';
 import { Deck } from './deck';
 import { Player } from './player';
 import { Round } from './rounds/round';
@@ -28,8 +28,7 @@ export class Game {
 		this.chatId = chatId;
 		this.bot = bot;
 
-		this.deck = new Deck(1); // 1 for testing, 4 for game
-		this.deck = new Deck(2); // 2 for testing, 4 for game
+		this.deck = new Deck(4); // 2 for testing, 4 for game
 
 		Game.instances.push(this); // WARNING: may lead to memory leaks if instances are created and never destroyed
 	}
@@ -103,7 +102,6 @@ export class Game {
 			this.bot.editMessageReplyMarkup({ inline_keyboard: [[]] } as InlineKeyboardMarkup, opts); // remove button
 			this.message(this.chatId, `All players found.\n${this.players[this.turn].username} starts.`);
 			this.isActive = true;
-			// TODO, reveal cards to everyone
 			this.checkReshuffle();
 		}
 	}
@@ -199,7 +197,8 @@ export class Game {
 			this.reset();
 			this.checkReshuffle();
 		} else {
-			this.messagePlayers("Reshuffle?", {
+			this.players.forEach(p => this.message(p.userId,
+				`Your hand:\n${p.showHand()}\nReshuffle?`, {
 				reply_markup: {
 					inline_keyboard: [
 						[
@@ -208,7 +207,7 @@ export class Game {
 						]
 					]
 				}
-			});
+			}));
 		}
 	}
 
@@ -224,8 +223,9 @@ export class Game {
 		}
 
 		if (this.votes === MAX_PLAYERS) {
-			if (this.yesVotes.length >= 3 || this.yesVotes.some(p => p.isBelowPoints())) {
-				// TODO: display hand to all players again
+			if (this.yesVotes.length >= (MAX_PLAYERS == 1 ? 1 : MAX_PLAYERS - 1) || this.yesVotes.some(p => p.isBelowPoints())) {
+				this.votes = 0;
+				this.yesVotes = [];
 				this.reset(); // reshuffle once more
 				this.checkReshuffle(); // check again
 			} else {
