@@ -29,6 +29,7 @@ export class Game {
 		this.bot = bot;
 
 		this.deck = new Deck(1); // 1 for testing, 4 for game
+		this.deck = new Deck(2); // 2 for testing, 4 for game
 
 		Game.instances.push(this); // WARNING: may lead to memory leaks if instances are created and never destroyed
 	}
@@ -51,12 +52,13 @@ export class Game {
 		this.bot.sendMessage(userId, text, opts);
 	}
 
+	messagePlayers(text: string, opts?: SendMessageOptions) {
+		this.players.forEach(p => this.message(p.userId, text, opts));
+	}
+
 	broadcast(text: string) {
-		for (let i = 0; i < this.playerCount; i++) {
-			const player = this.players[i];
-			this.message(player.userId, text);
-		}
 		this.message(this.chatId, text);
+		this.messagePlayers(text);
 	}
 
 	isFull() {
@@ -69,7 +71,7 @@ export class Game {
 			this.players[this.playerCount] = newPlayer;
 			this.playerIds[this.playerCount] = usr.id;
 
-			if (newPlayer.first) {
+			if (newPlayer.hasThreeDiamonds()) {
 				this.turn = this.playerCount;
 			} else if (this.playerCount === 0 && FORCE_START) {
 				this.turn = this.playerCount;
@@ -101,7 +103,8 @@ export class Game {
 			this.bot.editMessageReplyMarkup({ inline_keyboard: [[]] } as InlineKeyboardMarkup, opts); // remove button
 			this.message(this.chatId, `All players found.\n${this.players[this.turn].username} starts.`);
 			this.isActive = true;
-			this.currentPlayerTurn();
+			// TODO, reveal cards to everyone
+			this.checkReshuffle();
 		}
 	}
 
@@ -144,10 +147,6 @@ export class Game {
 			statusMsg += playerMsg + "\n";
 		}
 		this.message(player.userId, statusMsg);
-	}
-	
-	round() {
-		
 	}
 
 	currentPlayerTurn() {
@@ -196,6 +195,45 @@ export class Game {
 		this.players.forEach(p => p.newHand());
 	}
 
+	checkReshuffle() {
+		if (this.players.some(p => p.hasTwoTwos())) {
+			this.reset();
+			this.checkReshuffle();
+		} else {
+			this.messagePlayers("Reshuffle?", {
+				reply_markup: {
+					inline_keyboard: [
+						[
+							{ text: "Yes", callback_data: "reshuffle_yes" },
+							{ text: "No", callback_data: "reshuffle_no" }
+						]
+					]
+				}
+			});
+		}
+	}
+
+	votes: number = 0;
+	yesVotes: Player[] = [];
+
+	voteReshuffle(usr: User, msg: Message, vote: string) {
+		this.bot.deleteMessage(usr.id, msg.message_id);
+
+		this.votes++;
+		if (vote == "yes") {
+			this.yesVotes.push(this.getPlayer(usr));
+		}
+
+		if (this.votes === MAX_PLAYERS) {
+			if (this.yesVotes.length >= 3 || this.yesVotes.some(p => p.isBelowPoints())) {
+				// TODO: display hand to all players again
+				this.reset(); // reshuffle once more
+				this.checkReshuffle(); // check again
+			} else {
+				this.currentPlayerTurn(); // start game
+			}
+		}
+	}
 	pass(usr: User) {
 		const player = this.getPlayer(usr);
 		if (!this.isPlayerTurn(player)) {

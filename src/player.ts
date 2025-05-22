@@ -7,6 +7,8 @@ import { Pair } from './rounds/pair';
 import { Single } from './rounds/single';
 import { Round } from './rounds/round';
 
+const TWO = 12;
+
 export class Player {
     first: boolean = false;
     userId: number;
@@ -37,7 +39,6 @@ export class Player {
 
     showHand() {
         let cardList = "";
-        const hand = this.hand;
         for (let i = 0; i < this.hand.length; i++) {
             cardList += `${i + 1}: ${this.hand[i]}\n`
         }
@@ -69,6 +70,14 @@ export class Player {
 
 		hasTwoSpades() {
 			  return this.hand[this.hand.length - 1].isCardNumber(TWO_SPADES);
+		}
+
+		hasTwoTwos() {
+				return this.hand[this.hand.length - 2].rank == TWO;
+		}
+
+		isBelowPoints() {
+				return this.hand.map(c => c.getPoints()).reduce((a, p) => a + p, 0) <= 6;
 		}
 
     removeCards(cardIndices: number[]) {

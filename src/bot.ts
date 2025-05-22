@@ -20,12 +20,18 @@ bot.onText(/\/start/, (msg: Message) => {
 });
 
 bot.on('callback_query', (query: CallbackQuery) => {
-	const callback_data = query.data;
+	const callback_data = query.data as string; // ensure that every callback has data
 	const msg = query.message;
 	if (msg != undefined) {
 		if (callback_data == "join_game") { // this will only originate from a message in the group chat
 			const game = Game.getGameByChatId(msg.chat.id);
 			game.join(query.from, msg);
+			return;
+		}
+		if (callback_data.startsWith("reshuffle_")) { // this will onlt originate from a message in the private chat
+			const game = Game.getGameByUserId(query.from.id);
+			game.voteReshuffle(query.from, msg, callback_data.substring(10));
+			return;
 		}
 	}
 });
