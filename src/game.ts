@@ -13,7 +13,7 @@ export class Game {
 	bot: TelegramBot;
 	chatId: number;
 	players: Player[] = [];
-	inversePlayers: number[] = [];
+	playerIds: number[] = [];
 	playerCount: number = 0;
 	turn: number = MAX_PLAYERS;
 	currRoundType: RoundType = RoundType.ANY;
@@ -29,8 +29,7 @@ export class Game {
 		this.chatId = chatId;
 		this.bot = bot;
 
-		this.deck = new Deck();
-		this.deck.shuffle();
+		this.deck = new Deck(1); // 1 for testing, 4 for game
 
 		Game.instances.push(this); // WARNING: may lead to memory leaks if instances are created and never destroyed
 	}
@@ -46,7 +45,7 @@ export class Game {
 	}
 
 	static getGameByUserId(userId: number) {
-		return Game.instances.filter(g => g.inversePlayers.includes(userId))[0];
+		return Game.instances.filter(g => g.playerIds.includes(userId))[0];
 	}
 
 	message(userId: number, text: string, opts?: SendMessageOptions) {
@@ -66,10 +65,10 @@ export class Game {
 	}
 
 	addPlayer(usr: User) {
-		if (!this.isFull() && !this.inversePlayers.includes(usr.id)) {
+		if (!this.isFull() && !this.playerIds.includes(usr.id)) {
 			const newPlayer = new Player(usr, this.playerCount, this.deck);
 			this.players[this.playerCount] = newPlayer;
-			this.inversePlayers[this.playerCount] = usr.id;
+			this.playerIds[this.playerCount] = usr.id;
 
 			if (newPlayer.first) {
 				this.turn = this.playerCount;
@@ -101,14 +100,14 @@ export class Game {
 		}
 		if (this.isFull()) {
 			this.bot.editMessageReplyMarkup({ inline_keyboard: [[]] } as InlineKeyboardMarkup, opts); // remove button
-			this.message(this.chatId, `All players found.\nStarting game.`);
+			this.message(this.chatId, `All players found.\n${this.players[this.turn].username} starts.`);
 			this.isActive = true;
-			this.pingCurrentPlayer();
+			this.currentPlayerTurn();
 		}
 	}
 
 	getPlayer(usr: User) {
-		const player = this.players[this.inversePlayers.indexOf(usr.id)];
+		const player = this.players[this.playerIds.indexOf(usr.id)];
 		return player;
 	}
 
@@ -135,7 +134,7 @@ export class Game {
 		let statusMsg = `Total players: ${this.playerCount}\n`
 		statusMsg += `Current Round Type: ${this.currRoundType}\n`;
 		if (this.currRoundType == RoundType.SET) {
-			statusMsg += `Current Set Type: ${this.currSetType}\n`;
+			statusMsg += `Current Set Type: ${this.high?.getSetType()}\n`;
 		}
 		statusMsg += `Current Turn: ${this.players[this.turn].username}\n`;
 		statusMsg += `Current High: ${this.high?.toString()}\n`;
@@ -147,23 +146,30 @@ export class Game {
 		}
 		this.message(player.userId, statusMsg);
 	}
+	
+	round() {
+		
+	}
 
-	pingCurrentPlayer() {
+	currentPlayerTurn() {
 		let player = this.players[this.turn];
 		let pingMsg = "It is now your turn!\n"
 		pingMsg += player.showHand();
 		this.message(player.userId, pingMsg, {
 			reply_markup: {
 				keyboard: [
-					[{ text: "1" }, { text: "2" }],
-					[{ text: "pass" }]
+					[{ text: "1" }, { text: "2" }, { text: "3" }],
+					[{ text: "4" }, { text: "5" }, { text: "6" }],
+					[{ text: "7" }, { text: "8" }, { text: "9" }],
+					[{ text: "10" }, { text: "11" }, { text: "12" }],
+					[{ text: "13" }, { text: "pass" }, { text: "end" }]
 				]
 			}
 		});
 	}
 
-	isPlayerTurn(player: Player) {
-		return player.turn == this.turn;
+	isPlayerTurn(player: Player) { // broken
+		return player.idx == this.turn;
 	}
 
 	nextTurn() {
@@ -180,7 +186,7 @@ export class Game {
 			return;
 		}
 
-		this.pingCurrentPlayer();
+		this.currentPlayerTurn();
 	}
 
 	reset() {
@@ -205,8 +211,8 @@ export class Game {
 		this.nextTurn();
 	}
 
-	play(usr: User, text: string) {
-		const cardIndices = text.split(' ').slice(1).map(s => parseInt(s, 10));
+	play(usr: User, cards: string[]) {
+		const cardIndices = cards.map(i => parseInt(i, 10));
 		const player = this.getPlayer(usr);
 		if (!this.isPlayerTurn(player)) {
 			this.message(player.userId, "It is not your turn.")
@@ -241,6 +247,6 @@ export class Game {
 
 	endGame() {
 		this.broadcast(`Game Standings:\n${this.endMsg}`);
-		this.destroy(); // Is this correct? @Alieron
+		this.destroy();
 	}
 }

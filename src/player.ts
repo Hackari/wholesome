@@ -1,6 +1,6 @@
 import { User } from 'node-telegram-bot-api';
 import { Card } from './card';
-import { RoundType, SetType, THREE_DIAMONDS } from './constants';
+import { RoundType, SetType, THREE_DIAMONDS, TWO_SPADES } from './constants';
 import { Deck } from './deck';
 import { CardSet } from './rounds/cardset';
 import { Pair } from './rounds/pair';
@@ -11,25 +11,29 @@ export class Player {
     first: boolean = false;
     userId: number;
     username: string;
-    turn: number;
+    idx: number;
     comp: (card1: Card, card2: Card) => number;
-    hand: Card[];
+    hand: Card[] = [];
+		deck: Deck;
 
-    constructor(usr: User, turn: number, initDeck: Deck) {
+    constructor(usr: User, idx: number, deck: Deck) {
         this.userId = usr.id;
         this.username = usr.username as string;
-        this.turn = turn;
+        this.idx = idx;
         this.comp = Card.compareByValueThenSuit;
 
-        const startIdx = this.turn * 13;
-        const endIdx = startIdx + 13;
-        this.hand = initDeck.slice(startIdx, endIdx).sort(this.comp); 
+    		this.deck = deck;
+				this.newHand();
 
         const firstCard = this.hand[0];
-        if (firstCard.isCard(THREE_DIAMONDS)) {
+        if (firstCard.isCardNumber(THREE_DIAMONDS)) {
             this.first = true;
         }
     }
+
+		newHand() {
+			this.hand = this.deck.getHand(this.idx).sort(this.comp);
+		}
 
     showHand() {
         let cardList = "";
@@ -59,6 +63,14 @@ export class Player {
         return this.hand.length;
     }
 
+		hasThreeDiamonds() {
+				return this.hand[0].isCardNumber(THREE_DIAMONDS);
+		}
+
+		hasTwoSpades() {
+			  return this.hand[this.hand.length - 1].isCardNumber(TWO_SPADES);
+		}
+
     removeCards(cardIndices: number[]) {
         let inputLength = cardIndices.length;
         cardIndices.sort((a, b) => b - a);
@@ -72,7 +84,7 @@ export class Player {
         return new Set(list).size === list.length;
     }
 
-    playCards<T extends Round>(cardIndices: number[], currRoundType: RoundType, currSetType: SetType, high: T | undefined) {
+    playCards(cardIndices: number[], currRoundType: RoundType, currSetType: SetType, high: Round | undefined) {
         let inputLength = cardIndices.length;
         for (let i = 0; i < inputLength; i++) {
             let cardIndex = cardIndices[i]
@@ -123,6 +135,6 @@ export class Player {
         if (this.first) {
             marker = "!";
         }
-        return `${marker}${this.turn + 1}: ${this.username} (${this.getCardCount()} card(s) left)`;
+        return `${marker}${this.idx + 1}: ${this.username} (${this.getCardCount()} card(s) left)`;
     }
 }
