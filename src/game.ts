@@ -76,11 +76,6 @@ export class Game {
 			this.players[this.playerCount] = newPlayer;
 			this.playerIds[this.playerCount] = usr.id;
 
-			if (newPlayer.hasThreeDiamonds()) {
-				this.turn = this.playerCount;
-			} else if (this.playerCount === 0 && FORCE_START) {
-				this.turn = this.playerCount;
-			}
 
 			this.playerCount++;
 
@@ -106,7 +101,7 @@ export class Game {
 			}
 		}
 		if (this.isFull()) {
-			this.message(this.chatId, `All players found.\n${this.players[this.turn].username} starts.`);
+			this.message(this.chatId, 'All players found.\nStarting game...');
 			this.isActive = true;
 			this.checkReshuffle();
 		}
@@ -171,7 +166,7 @@ export class Game {
 		});
 	}
 
-	isPlayerTurn(player: Player) { // broken
+	isPlayerTurn(player: Player) {
 		return player.idx == this.turn;
 	}
 
@@ -243,6 +238,8 @@ export class Game {
 				this.reshuffle(); // reshuffle once more
 				this.checkReshuffle(); // check again
 			} else {
+				this.turn = this.players.map(p => p.hasThreeDiamonds()).indexOf(true);
+				this.broadcast(`${this.players[this.turn].username} starts.`)
 				this.currentPlayerTurn(); // start game
 			}
 		}
