@@ -56,12 +56,18 @@ bot.onText(/status/, (msg: Message) => {
 // multiple event listeners that cannot be destroyed
 const cards: { [userId: number]: string[] } = {};
 bot.onText(/^(1[0-3]|[1-9])$/, (msg: Message) => {
-	cards[msg.chat.id].push(msg.text as string);
+	const userId = msg.chat.id;
+	if (cards[userId] !== undefined) {
+		cards[userId].push(msg.text as string);
+	} else {
+		cards[userId] = [msg.text as string];
+	}
 });
 
-bot.onText(/play/, (msg: Message) => { 
+bot.onText(/play/, (msg: Message) => {
 	const userId = msg.chat.id;
-	Game.getGameByUserId(userId).play(msg.from as User, [...cards[userId]]);
+	Game.getGameByUserId(userId).play(msg.from as User,
+		cards[userId] === undefined ? undefined : [...cards[userId]]);
 	delete cards[userId];
 });
 

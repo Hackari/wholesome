@@ -157,7 +157,7 @@ export class Game {
 					[{ text: "4" }, { text: "5" }, { text: "6" }],
 					[{ text: "7" }, { text: "8" }, { text: "9" }],
 					[{ text: "10" }, { text: "11" }, { text: "12" }],
-					[{ text: "13" }, { text: "pass" }, { text: "play" }]
+					[{ text: "13" }, { text: "play" }, { text: "pass" }]
 				]
 			}
 		});
@@ -252,35 +252,39 @@ export class Game {
 		this.nextTurn();
 	}
 
-	play(usr: User, cards: string[]) {
-		const cardIndices = cards.map(i => parseInt(i, 10));
-		const player = this.getPlayer(usr);
-		if (!this.isPlayerTurn(player)) {
-			this.message(player.userId, "It is not your turn.")
-			return;
-		}
-		const resultMsg = player.playCards(cardIndices,
-			this.currRoundType,
-			this.high)
-
-		if (player.getCardCount() == 1) {
-			this.broadcast(`${player.username} has one card remaining.`);
-		}
-
-		if (typeof resultMsg === 'string') {
-			this.message(player.userId, resultMsg);
+	play(usr: User, cards: string[] | undefined) {
+		if (cards === undefined) {
+			this.message(usr.id, "Choose something to play");
 		} else {
-			this.high = resultMsg;
-			this.currRoundType = resultMsg.getRoundType();
-			this.broadcast(`${player.username} played ${resultMsg}`);
-			this.nextTurn();
-		}
+			const cardIndices = cards.map(i => parseInt(i, 10));
+			const player = this.getPlayer(usr);
+			if (!this.isPlayerTurn(player)) {
+				this.message(player.userId, "It is not your turn.")
+				return;
+			}
+			const resultMsg = player.playCards(cardIndices,
+				this.currRoundType,
+				this.high)
 
-		if (player.getCardCount() == 0) {
-			this.broadcast(`${player.username} has ended.`);
-			this.endMsg += `${player.username}\n`
-			this.endCount++;
-			this.reset();
+			if (player.getCardCount() == 1) {
+				this.broadcast(`${player.username} has one card remaining.`);
+			}
+
+			if (typeof resultMsg === 'string') {
+				this.message(player.userId, resultMsg);
+			} else {
+				this.high = resultMsg;
+				this.currRoundType = resultMsg.getRoundType();
+				this.broadcast(`${player.username} played ${resultMsg}`);
+				this.nextTurn();
+			}
+
+			if (player.getCardCount() == 0) {
+				this.broadcast(`${player.username} has ended.`);
+				this.endMsg += `${player.username}\n`
+				this.endCount++;
+				this.reset();
+			}
 		}
 	}
 
