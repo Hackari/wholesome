@@ -1,4 +1,4 @@
-import TelegramBot, { User, Message, InlineKeyboardMarkup, SendMessageOptions } from 'node-telegram-bot-api';
+import TelegramBot, { User, Message, SendMessageOptions } from 'node-telegram-bot-api';
 import { RoundType, FORCE_START } from './constants';
 import { Deck } from './deck';
 import { Player } from './player';
@@ -86,20 +86,19 @@ export class Game {
 	start(usr: User) {
 		this.addPlayer(usr);
 		this.message(this.chatId, `Game created! 1/${MAX_PLAYERS}\n- ${usr.username}`, {
-			reply_markup: {
-				inline_keyboard: [
-					[{ text: 'Join', callback_data: 'join_game' }]]
-			}
+			reply_markup: { inline_keyboard: [[{ text: 'Join', callback_data: 'join_game' }]] }
 		});
 	}
 
-	join(usr: User, msg: Message) {
+	async join(usr: User, msg: Message) {
 		const opts = { chat_id: this.chatId, message_id: msg.message_id };
 		if (this.addPlayer(usr)) {
-			this.bot.editMessageText(`${msg.text?.substring(0, 14)}${this.playerCount}${msg.text?.substring(14 + 1)}\n- ${usr.username}`, opts);
+			await this.bot.editMessageText(`${msg.text?.substring(0, 14)}${this.playerCount}${msg.text?.substring(14 + 1)}\n- ${usr.username}`, opts);
+			if (!this.isFull()) {
+				await this.bot.editMessageReplyMarkup({ inline_keyboard: [[{ text: 'Join', callback_data: 'join_game' }]] }, opts); // options are removed unless readded
+			}
 		}
 		if (this.isFull()) {
-			this.bot.editMessageReplyMarkup({ inline_keyboard: [[]] } as InlineKeyboardMarkup, opts); // remove button
 			this.message(this.chatId, `All players found.\n${this.players[this.turn].username} starts.`);
 			this.isActive = true;
 			this.checkReshuffle();
@@ -158,7 +157,7 @@ export class Game {
 					[{ text: "4" }, { text: "5" }, { text: "6" }],
 					[{ text: "7" }, { text: "8" }, { text: "9" }],
 					[{ text: "10" }, { text: "11" }, { text: "12" }],
-					[{ text: "13" }, { text: "pass" }, { text: "end" }]
+					[{ text: "13" }, { text: "pass" }, { text: "play" }]
 				]
 			}
 		});
@@ -185,16 +184,19 @@ export class Game {
 		this.currentPlayerTurn();
 	}
 
-	reset() { // reshuffle logic
+	reset() {
 		this.high = undefined;
 		this.currRoundType = RoundType.ANY;
+	}
+
+	reshuffle() {
 		this.deck.shuffle();
 		this.players.forEach(p => p.newHand());
 	}
 
 	checkReshuffle() {
 		if (this.players.some(p => p.hasTwoTwos())) {
-			this.reset();
+			this.reshuffle();
 			this.checkReshuffle();
 		} else {
 			this.players.forEach(p => this.message(p.userId,
@@ -223,10 +225,10 @@ export class Game {
 		}
 
 		if (this.votes === MAX_PLAYERS) {
-			if (this.yesVotes.length >= (MAX_PLAYERS == 1 ? 1 : MAX_PLAYERS - 1) || this.yesVotes.some(p => p.isBelowPoints())) {
+			if (this.yesVotes.length >= (MAX_PLAYERS === 1 ? 1 : MAX_PLAYERS - 1) || this.yesVotes.some(p => p.isBelowPoints())) {
 				this.votes = 0;
 				this.yesVotes = [];
-				this.reset(); // reshuffle once more
+				this.reshuffle(); // reshuffle once more
 				this.checkReshuffle(); // check again
 			} else {
 				this.currentPlayerTurn(); // start game

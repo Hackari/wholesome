@@ -28,7 +28,7 @@ bot.on('callback_query', (query: CallbackQuery) => {
 			game.join(query.from, msg);
 			return;
 		}
-		if (callback_data.startsWith("reshuffle_")) { // this will onlt originate from a message in the private chat
+		if (callback_data.startsWith("reshuffle_")) { // this will only originate from a message in the private chat
 			const game = Game.getGameByUserId(query.from.id);
 			game.voteReshuffle(query.from, msg, callback_data.substring(10));
 			return;
@@ -52,9 +52,17 @@ bot.onText(/status/, (msg: Message) => {
 	Game.getGameByUserId(msg.chat.id).showStatus(msg.from as User);
 });
 
+// don't like the scoping here but its better than creating
+// multiple event listeners that cannot be destroyed
+const cards: { [userId: number]: string[] } = {};
+bot.onText(/^(1[0-3]|[1-9])$/, (msg: Message) => {
+	cards[msg.chat.id].push(msg.text as string);
+});
 
-bot.onText(/(1[0-3])|\d/, (msg: Message) => {
-	Game.getGameByUserId(msg.chat.id).play(msg.from as User, msg.text as string);
+bot.onText(/play/, (msg: Message) => { 
+	const userId = msg.chat.id;
+	Game.getGameByUserId(userId).play(msg.from as User, [...cards[userId]]);
+	delete cards[userId];
 });
 
 bot.onText(/pass/, (msg: Message) => {
