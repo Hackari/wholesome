@@ -195,7 +195,7 @@ export class Game {
 	}
 
 	checkReshuffle() {
-		if (this.players.some(p => p.hasTwoTwos())) {
+		if (this.players.some(p => p.hasFourTwos())) {
 			this.reshuffle();
 			this.checkReshuffle();
 		} else {
