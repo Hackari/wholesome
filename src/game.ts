@@ -52,6 +52,7 @@ export class Game {
 	log(text: string) {
 		console.log(`${this.gameId.toString(16)}: ${text}`);
 	}
+
 	message(userId: number, text: string, opts?: SendMessageOptions) {
 		this.bot.sendMessage(userId, text, opts);
 	}
@@ -269,6 +270,10 @@ export class Game {
 			const player = this.getPlayer(usr);
 			if (!this.isPlayerTurn(player)) {
 				this.message(player.userId, "It is not your turn.")
+				return;
+			}
+			if (player.hasThreeDiamonds() && !cards.includes('1')) {
+				this.message(player.userId, "Start with the 3 of Diamonds"); // there has to be a more elegant solution
 				return;
 			}
 			const resultMsg = player.playCards(cardIndices,
