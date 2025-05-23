@@ -23,10 +23,12 @@ export class Game {
 	passCount: number = 0;
 	endCount: number = 0;
 	deck: Deck;
+	gameId: bigint;
 
 	constructor(chatId: number, bot: TelegramBot) {
 		this.chatId = chatId;
 		this.bot = bot;
+		this.gameId = BigInt.asUintN(64, BigInt(this.chatId));
 
 		this.deck = new Deck(4); // 2 for testing, 4 for game
 
@@ -47,6 +49,9 @@ export class Game {
 		return Game.instances.filter(g => g.playerIds.includes(userId))[0];
 	}
 
+	log(text: string) {
+		console.log(`${this.gameId.toString(16)}: ${text}`);
+	}
 	message(userId: number, text: string, opts?: SendMessageOptions) {
 		this.bot.sendMessage(userId, text, opts);
 	}
@@ -66,6 +71,7 @@ export class Game {
 
 	addPlayer(usr: User) {
 		if (!this.isFull() && !this.playerIds.includes(usr.id)) {
+			this.log(`Player ${usr.username} joins`);
 			const newPlayer = new Player(usr, this.playerCount, this.deck);
 			this.players[this.playerCount] = newPlayer;
 			this.playerIds[this.playerCount] = usr.id;
@@ -84,6 +90,7 @@ export class Game {
 	}
 
 	start(usr: User) {
+		this.log('Game started');
 		this.addPlayer(usr);
 		this.message(this.chatId, `Game created! 1/${MAX_PLAYERS}\n- ${usr.username}`, {
 			reply_markup: { inline_keyboard: [[{ text: 'Join', callback_data: 'join_game' }]] }
@@ -148,6 +155,7 @@ export class Game {
 
 	currentPlayerTurn() {
 		let player = this.players[this.turn];
+		this.log(`Player ${player.username}'s turn`);
 		let pingMsg = "It is now your turn!\n"
 		pingMsg += player.showHand();
 		this.message(player.userId, pingMsg, {
@@ -185,6 +193,7 @@ export class Game {
 	}
 
 	reset() {
+		this.log('Reset');
 		this.high = undefined;
 		this.currRoundType = RoundType.ANY;
 	}
@@ -196,6 +205,7 @@ export class Game {
 
 	checkReshuffle() {
 		if (this.players.some(p => p.hasFourTwos())) {
+			this.log('Reshuffling... (4 twos)');
 			this.reshuffle();
 			this.checkReshuffle();
 		} else {
@@ -217,6 +227,7 @@ export class Game {
 	yesVotes: Player[] = [];
 
 	voteReshuffle(usr: User, msg: Message, vote: string) {
+		this.log(`Player ${usr.username} voted ${vote} to reshuffle`);
 		this.bot.deleteMessage(usr.id, msg.message_id);
 
 		this.votes++;
@@ -228,6 +239,7 @@ export class Game {
 			if (this.yesVotes.length >= (MAX_PLAYERS === 1 ? 1 : MAX_PLAYERS - 1) || this.yesVotes.some(p => p.isBelowPoints())) {
 				this.votes = 0;
 				this.yesVotes = [];
+				this.log('Reshuffling... (by voting)');
 				this.reshuffle(); // reshuffle once more
 				this.checkReshuffle(); // check again
 			} else {
@@ -289,6 +301,7 @@ export class Game {
 	}
 
 	endGame() {
+		this.log('Game ended');
 		this.broadcast(`Game Standings:\n${this.endMsg}`);
 		this.destroy();
 	}
