@@ -72,8 +72,8 @@ export class Player {
 			  return this.hand[this.hand.length - 1].isCardNumber(TWO_SPADES);
 		}
 
-		hasTwoTwos() {
-				return this.hand[this.hand.length - 2].rank == TWO;
+		hasFourTwos() {
+				return this.hand[this.hand.length - 4].rank == TWO;
 		}
 
 		isBelowPoints() {
