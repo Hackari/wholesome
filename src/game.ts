@@ -23,10 +23,12 @@ export class Game {
 	passCount: number = 0;
 	endCount: number = 0;
 	deck: Deck;
+	gameId: bigint;
 
 	constructor(chatId: number, bot: TelegramBot) {
 		this.chatId = chatId;
 		this.bot = bot;
+		this.gameId = BigInt.asUintN(64, BigInt(this.chatId));
 
 		this.deck = new Deck(4); // 2 for testing, 4 for game
 
@@ -47,6 +49,9 @@ export class Game {
 		return Game.instances.filter(g => g.playerIds.includes(userId))[0];
 	}
 
+	log(text: string) {
+		console.log(`${this.gameId.toString(16)}: ${text}`);
+	}
 	message(userId: number, text: string, opts?: SendMessageOptions) {
 		this.bot.sendMessage(userId, text, opts);
 	}
@@ -66,6 +71,7 @@ export class Game {
 
 	addPlayer(usr: User) {
 		if (!this.isFull() && !this.playerIds.includes(usr.id)) {
+			this.log(`Player ${usr.username} joins`);
 			const newPlayer = new Player(usr, this.playerCount, this.deck);
 			this.players[this.playerCount] = newPlayer;
 			this.playerIds[this.playerCount] = usr.id;
@@ -84,6 +90,7 @@ export class Game {
 	}
 
 	start(usr: User) {
+		this.log('Game started');
 		this.addPlayer(usr);
 		this.message(this.chatId, `Game created! 1/${MAX_PLAYERS}\n- ${usr.username}`, {
 			reply_markup: { inline_keyboard: [[{ text: 'Join', callback_data: 'join_game' }]] }
@@ -148,6 +155,7 @@ export class Game {
 
 	currentPlayerTurn() {
 		let player = this.players[this.turn];
+		this.log(`Player ${player.username}'s turn`);
 		let pingMsg = "It is now your turn!\n"
 		pingMsg += player.showHand();
 		this.message(player.userId, pingMsg, {
@@ -157,7 +165,7 @@ export class Game {
 					[{ text: "4" }, { text: "5" }, { text: "6" }],
 					[{ text: "7" }, { text: "8" }, { text: "9" }],
 					[{ text: "10" }, { text: "11" }, { text: "12" }],
-					[{ text: "13" }, { text: "pass" }, { text: "play" }]
+					[{ text: "13" }, { text: "play" }, { text: "pass" }]
 				]
 			}
 		});
@@ -185,6 +193,7 @@ export class Game {
 	}
 
 	reset() {
+		this.log('Reset');
 		this.high = undefined;
 		this.currRoundType = RoundType.ANY;
 	}
@@ -196,6 +205,7 @@ export class Game {
 
 	checkReshuffle() {
 		if (this.players.some(p => p.hasFourTwos())) {
+			this.log('Reshuffling... (4 twos)');
 			this.reshuffle();
 			this.checkReshuffle();
 		} else {
@@ -217,6 +227,7 @@ export class Game {
 	yesVotes: Player[] = [];
 
 	voteReshuffle(usr: User, msg: Message, vote: string) {
+		this.log(`Player ${usr.username} voted ${vote} to reshuffle`);
 		this.bot.deleteMessage(usr.id, msg.message_id);
 
 		this.votes++;
@@ -228,6 +239,7 @@ export class Game {
 			if (this.yesVotes.length >= (MAX_PLAYERS === 1 ? 1 : MAX_PLAYERS - 1) || this.yesVotes.some(p => p.isBelowPoints())) {
 				this.votes = 0;
 				this.yesVotes = [];
+				this.log('Reshuffling... (by voting)');
 				this.reshuffle(); // reshuffle once more
 				this.checkReshuffle(); // check again
 			} else {
@@ -252,39 +264,44 @@ export class Game {
 		this.nextTurn();
 	}
 
-	play(usr: User, cards: string[]) {
-		const cardIndices = cards.map(i => parseInt(i, 10));
-		const player = this.getPlayer(usr);
-		if (!this.isPlayerTurn(player)) {
-			this.message(player.userId, "It is not your turn.")
-			return;
-		}
-		const resultMsg = player.playCards(cardIndices,
-			this.currRoundType,
-			this.high)
-
-		if (player.getCardCount() == 1) {
-			this.broadcast(`${player.username} has one card remaining.`);
-		}
-
-		if (typeof resultMsg === 'string') {
-			this.message(player.userId, resultMsg);
+	play(usr: User, cards: string[] | undefined) {
+		if (cards === undefined) {
+			this.message(usr.id, "Choose something to play");
 		} else {
-			this.high = resultMsg;
-			this.currRoundType = resultMsg.getRoundType();
-			this.broadcast(`${player.username} played ${resultMsg}`);
-			this.nextTurn();
-		}
+			const cardIndices = cards.map(i => parseInt(i, 10));
+			const player = this.getPlayer(usr);
+			if (!this.isPlayerTurn(player)) {
+				this.message(player.userId, "It is not your turn.")
+				return;
+			}
+			const resultMsg = player.playCards(cardIndices,
+				this.currRoundType,
+				this.high)
 
-		if (player.getCardCount() == 0) {
-			this.broadcast(`${player.username} has ended.`);
-			this.endMsg += `${player.username}\n`
-			this.endCount++;
-			this.reset();
+			if (player.getCardCount() == 1) {
+				this.broadcast(`${player.username} has one card remaining.`);
+			}
+
+			if (typeof resultMsg === 'string') {
+				this.message(player.userId, resultMsg);
+			} else {
+				this.high = resultMsg;
+				this.currRoundType = resultMsg.getRoundType();
+				this.broadcast(`${player.username} played ${resultMsg}`);
+				this.nextTurn();
+			}
+
+			if (player.getCardCount() == 0) {
+				this.broadcast(`${player.username} has ended.`);
+				this.endMsg += `${player.username}\n`
+				this.endCount++;
+				this.reset();
+			}
 		}
 	}
 
 	endGame() {
+		this.log('Game ended');
 		this.broadcast(`Game Standings:\n${this.endMsg}`);
 		this.destroy();
 	}
