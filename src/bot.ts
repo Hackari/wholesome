@@ -74,3 +74,7 @@ bot.onText(/play/, (msg: Message) => {
 bot.onText(/pass/, (msg: Message) => {
 	Game.getGameByUserId(msg.chat.id).pass(msg.from as User);
 });
+
+bot.onText(/end/, (msg: Message) => {
+	Game.getGameByChatId(msg.chat.id).endGame();
+});
