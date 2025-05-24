@@ -30,7 +30,7 @@ export class Game {
 		this.bot = bot;
 		this.gameId = BigInt.asUintN(64, BigInt(this.chatId));
 
-		this.deck = new Deck(4); // 2 for testing, 4 for game
+		this.deck = new Deck(); // 2 for testing, 4 for game
 
 		Game.instances.push(this); // WARNING: may lead to memory leaks if instances are created and never destroyed
 	}

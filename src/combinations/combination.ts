@@ -13,7 +13,7 @@ export abstract class Combination {
 			case 5:
 				return new CardSet(cards);
 			default:
-				return new InvalidRound();
+				return new InvalidCombination();
 		}
 	}
 
@@ -28,7 +28,7 @@ export abstract class Combination {
 	abstract isValid(): boolean;
 };
 
-class InvalidRound extends Combination {
+class InvalidCombination extends Combination {
 	toString() {
 		return 'invalid';
 	}
