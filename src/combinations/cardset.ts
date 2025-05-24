@@ -1,6 +1,6 @@
 import { Card } from '../card';
 import { RoundType, SetType } from '../constants';
-import { Round } from './round';
+import { Combination } from './combination';
 
 const ACE = 11;
 const TWO = 12;
@@ -10,7 +10,7 @@ const FIVE = 2;
 const SIX = 3;
 const SET_TYPES = ['Straight', 'Flush', 'Full House', 'Four of a Kind', 'Straight Flush'];
 
-export class CardSet extends Round {
+export class CardSet extends Combination {
 	card1: Card;
 	card2: Card;
 	card3: Card;

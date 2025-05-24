@@ -1,8 +1,8 @@
 import { Card } from '../card';
 import { RoundType, SetType } from '../constants';
-import { Round } from './round';
+import { Combination } from './combination';
 
-export class Single extends Round {
+export class Single extends Combination {
 	card: Card;
 
 	constructor(cards: Card[]) {

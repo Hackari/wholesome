@@ -1,10 +1,10 @@
 import { Card } from '../card';
 import { RoundType, SetType } from '../constants';
 
-export abstract class Round {
+export abstract class Combination {
 	protected weight: number = -1;
 
-	static move(cards: Card[]): Round {
+	static move(cards: Card[]): Combination {
 		switch (cards.length) {
 			case 1:
 				return new Single(cards);
@@ -17,7 +17,7 @@ export abstract class Round {
 		}
 	}
 
-	canPlay(high: Round | undefined) {
+	canPlay(high: Combination | undefined) {
 		return high === undefined || (this.getRoundType() == high.getRoundType() && this.weight > high.weight);
 	}
 
@@ -28,7 +28,7 @@ export abstract class Round {
 	abstract isValid(): boolean;
 };
 
-class InvalidRound extends Round {
+class InvalidRound extends Combination {
 	toString() {
 		return 'invalid';
 	}

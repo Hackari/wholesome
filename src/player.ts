@@ -2,7 +2,7 @@ import { User } from 'node-telegram-bot-api';
 import { Card } from './card';
 import { RoundType, THREE_DIAMONDS, TWO_SPADES } from './constants';
 import { Deck } from './deck';
-import { Round } from './rounds/round';
+import { Combination } from './combinations/combination';
 
 const TWO = 12;
 
@@ -90,7 +90,8 @@ export class Player {
         return new Set(list).size === list.length;
     }
 
-    playCards(cardIndices: number[], currRoundType: RoundType, high: Round | undefined) {
+    playCards(cardIndices: number[], currRoundType: RoundType, high: Combination | undefined) {
+			// should not be returning strings
         let inputLength = cardIndices.length;
         for (let i = 0; i < inputLength; i++) {
             let cardIndex = cardIndices[i]
@@ -104,7 +105,7 @@ export class Player {
         }
 
         const selectedCards = cardIndices.map(cardIndex => this.hand[cardIndex - 1]);
-        const playerMove = Round.move(selectedCards);
+        const playerMove = Combination.move(selectedCards);
 				const playedRoundType = playerMove.getRoundType();
 
         if (currRoundType != RoundType.ANY && currRoundType != playedRoundType) {
