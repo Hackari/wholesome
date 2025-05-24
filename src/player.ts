@@ -2,10 +2,7 @@ import { User } from 'node-telegram-bot-api';
 import { Card } from './card';
 import { RoundType, THREE_DIAMONDS, TWO_SPADES } from './constants';
 import { Deck } from './deck';
-import { CardSet } from './rounds/cardset';
-import { Pair } from './rounds/pair';
-import { Single } from './rounds/single';
-import { Round } from './rounds/round';
+import { Combination } from './combinations/combination';
 
 const TWO = 12;
 
@@ -93,7 +90,8 @@ export class Player {
         return new Set(list).size === list.length;
     }
 
-    playCards(cardIndices: number[], currRoundType: RoundType, high: Round | undefined) {
+    playCards(cardIndices: number[], currRoundType: RoundType, high: Combination | undefined) {
+			// should not be returning strings
         let inputLength = cardIndices.length;
         for (let i = 0; i < inputLength; i++) {
             let cardIndex = cardIndices[i]
@@ -106,32 +104,16 @@ export class Player {
             return `You played duplicate cards.`
         }
 
-        let playedRoundType: RoundType;
-        let playerMove: Round;
         const selectedCards = cardIndices.map(cardIndex => this.hand[cardIndex - 1]);
-        switch (inputLength) {
-            case 1:
-                playerMove = new Single(selectedCards);
-                playedRoundType = RoundType.SINGLE;
-                break;
-            case 2:
-                playerMove = new Pair(selectedCards);
-                playedRoundType = RoundType.PAIR;
-                break;
-            case 5:
-                playerMove = new CardSet(selectedCards);
-                playedRoundType = RoundType.SET;
-                break;
-            default:
-                return "Invalid amount of cards";
-        }
+        const playerMove = Combination.move(selectedCards);
+				const playedRoundType = playerMove.getRoundType();
 
         if (currRoundType != RoundType.ANY && currRoundType != playedRoundType) {
             return `The current round type is ${currRoundType}. 
             You played ${playedRoundType}.`;
         }
 
-        if (!(playerMove.canPlay(high))) {
+        if (!playerMove.isValid() || !playerMove.canPlay(high)) {
             return `You tried to play ${playerMove.toStringAsHand()}`;
         }
 

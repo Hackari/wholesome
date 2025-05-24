@@ -1,6 +1,6 @@
 import { Card } from '../card';
 import { RoundType, SetType } from '../constants';
-import { Round } from './round';
+import { Combination } from './combination';
 
 const ACE = 11;
 const TWO = 12;
@@ -10,7 +10,7 @@ const FIVE = 2;
 const SIX = 3;
 const SET_TYPES = ['Straight', 'Flush', 'Full House', 'Four of a Kind', 'Straight Flush'];
 
-export class CardSet implements Round {
+export class CardSet extends Combination {
 	card1: Card;
 	card2: Card;
 	card3: Card;
@@ -18,16 +18,31 @@ export class CardSet implements Round {
 	card5: Card;
 	setType: SetType = SetType.INVALID;
 
-	weight: number = 0;
+	constructor(cards: Card[]) {
+		super();
+		cards.sort(Card.compareByValueThenSuit);
+		this.card1 = cards[0];
+		this.card2 = cards[1];
+		this.card3 = cards[2];
+		this.card4 = cards[3];
+		this.card5 = cards[4];
 
-	constructor(selectedCards: Card[]) {
-		selectedCards.sort(Card.compareByValueThenSuit);
-		this.card1 = selectedCards[0];
-		this.card2 = selectedCards[1];
-		this.card3 = selectedCards[2];
-		this.card4 = selectedCards[3];
-		this.card5 = selectedCards[4];
-		// this.weight = this.card5.rank;
+		if (this.isFourOfAKind()) {
+			this.setType = SetType.FOUR_OF_KIND;
+		}
+		if (this.isFullHouse()) {
+			this.setType = SetType.FULL_HOUSE;
+		}
+		if (this.isFlush()) {
+			if (this.isStraight()) {
+				this.setType = SetType.STRAIGHT_FLUSH;
+			} else {
+				this.setType = SetType.FLUSH;
+			}
+		} else if (this.isStraight()) {
+			this.setType = SetType.STRAIGHT;
+		}
+		this.weight += this.setType * 100;
 	}
 
 	static genSets(hand: Card[]) {
@@ -48,7 +63,7 @@ export class CardSet implements Round {
 		}
 
 		combination(0, 5, 5); // 5-combinations of the hand, at most 13C5 = 1287
-		return result.map(a => new CardSet(a)).filter(s => s.checkTypeWeight() !== SetType.INVALID);
+		return result.map(a => new CardSet(a)).filter(s => s.getSetType() !== SetType.INVALID);
 	}
 
 	isFlush() {
@@ -127,31 +142,6 @@ export class CardSet implements Round {
 		return false;
 	}
 
-	checkTypeWeight() {
-		if (this.isFourOfAKind()) {
-			this.setType = SetType.FOUR_OF_KIND;
-		}
-		if (this.isFullHouse()) {
-			this.setType = SetType.FULL_HOUSE;
-		}
-		if (this.isFlush()) {
-			if (this.isStraight()) {
-				this.setType = SetType.STRAIGHT_FLUSH;
-			} else {
-				this.setType = SetType.FLUSH;
-			}
-		} else if (this.isStraight()) {
-			this.setType = SetType.STRAIGHT;
-		}
-		this.weight += this.setType * 100;
-		return this.setType;
-	}
-
-	canPlay(high: CardSet | undefined) {
-		this.checkTypeWeight();
-		return high === undefined || this.weight >= high.weight;
-	}
-
 	toString() {
 		return `a ${SET_TYPES[this.setType]} of ${this.card1}, ${this.card2}, ${this.card3}, ${this.card4}, and ${this.card5}`;
 	}
@@ -160,15 +150,15 @@ export class CardSet implements Round {
 		return `${this.card1}, ${this.card2}, ${this.card3}, ${this.card4}, and ${this.card5}`;
 	}
 
-	getHighest() { // consider removing
-		return this.card5;
-	}
-
 	getRoundType() {
 		return RoundType.SET;
 	}
 
 	getSetType() {
 		return this.setType;
+	}
+
+	isValid() {
+		return this.setType !== SetType.INVALID;
 	}
 }

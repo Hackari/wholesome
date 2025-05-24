@@ -2,7 +2,7 @@ import TelegramBot, { User, Message, SendMessageOptions } from 'node-telegram-bo
 import { RoundType, FORCE_START } from './constants';
 import { Deck } from './deck';
 import { Player } from './player';
-import { Round } from './rounds/round';
+import { Combination } from './combinations/combination';
 
 const MAX_PLAYERS = 1;
 
@@ -17,7 +17,7 @@ export class Game {
 	playerCount: number = 0;
 	turn: number = MAX_PLAYERS;
 	currRoundType: RoundType = RoundType.ANY;
-	high: Round | undefined = undefined;
+	high: Combination | undefined = undefined;
 	isActive: boolean = false;
 	endMsg: string = "";
 	passCount: number = 0;
