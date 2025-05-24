@@ -2,10 +2,8 @@ import { Card } from './card';
 
 export class Deck {
 	deck: Card[] = [];
-	players: number;
 
-	constructor(players: 1 | 2 | 4) {
-		this.players = players;
+	constructor() {
 		for (let i = 0; i < 52; i++) {
 			this.deck.push(new Card(i));
 		}
@@ -21,7 +19,7 @@ export class Deck {
 	}
 
 	getHand(idx: number) {
-		const interval = 52 / this.players;
+		const interval = 13;
 		const start = idx * interval;
 		return this.deck.slice(start, start + interval);
 	}
