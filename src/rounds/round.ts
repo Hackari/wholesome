@@ -25,6 +25,7 @@ export abstract class Round {
 	abstract toStringAsHand(): string;
 	abstract getRoundType(): RoundType;
 	abstract getSetType(): SetType;
+	abstract isValid(): boolean;
 };
 
 class InvalidRound extends Round {
@@ -42,6 +43,10 @@ class InvalidRound extends Round {
 
 	getSetType() {
 		return SetType.INVALID;
+	}
+
+	isValid() {
+		return false;
 	}
 }
 

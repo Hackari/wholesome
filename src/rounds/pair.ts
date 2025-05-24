@@ -48,4 +48,8 @@ export class Pair extends Round {
 	getSetType() {
 		return SetType.INVALID;
 	}
+
+	isValid() {
+		return this.card1.rank == this.card2.rank;
+	}
 }

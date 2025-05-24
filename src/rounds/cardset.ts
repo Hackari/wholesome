@@ -157,4 +157,8 @@ export class CardSet extends Round {
 	getSetType() {
 		return this.setType;
 	}
+
+	isValid() {
+		return this.setType !== SetType.INVALID;
+	}
 }

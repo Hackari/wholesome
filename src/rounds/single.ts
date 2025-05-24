@@ -26,4 +26,8 @@ export class Single extends Round {
 	getSetType() {
 		return SetType.INVALID;
 	}
+
+	isValid() {
+		return true;
+	}
 }
