@@ -225,29 +225,31 @@ export class Game {
 		}
 	}
 
-	votes: number = 0;
+	voted: number[] = [];
 	yesVotes: Player[] = [];
 
-	voteReshuffle(usr: User, msg: Message, vote: string) {
+	async voteReshuffle(usr: User, msg: Message, vote: string) {
 		this.log(`Player ${usr.username} voted ${vote} to reshuffle`);
-		this.bot.deleteMessage(usr.id, msg.message_id);
+		await this.bot.deleteMessage(usr.id, msg.message_id);
 
-		this.votes++;
-		if (vote == "yes") {
-			this.yesVotes.push(this.getPlayer(usr));
-		}
+		if (!this.voted.includes(usr.id)) {
+			this.voted.push(usr.id);
+			if (vote == "yes") {
+				this.yesVotes.push(this.getPlayer(usr));
+			}
 
-		if (this.votes === MAX_PLAYERS) {
-			if (this.yesVotes.length >= (MAX_PLAYERS === 1 ? 1 : MAX_PLAYERS - 1) || this.yesVotes.some(p => p.isBelowPoints())) {
-				this.votes = 0;
-				this.yesVotes = [];
-				this.log('Reshuffling... (by voting)');
-				this.reshuffle(); // reshuffle once more
-				this.checkReshuffle(); // check again
-			} else {
-				this.turn = this.players.map(p => p.hasThreeDiamonds()).indexOf(true);
-				this.broadcast(`${this.players[this.turn].username} starts.`)
-				this.currentPlayerTurn(); // start game
+			if (this.voted.length === MAX_PLAYERS) {
+				if (this.yesVotes.length >= (MAX_PLAYERS === 1 ? 1 : MAX_PLAYERS - 1) || this.yesVotes.some(p => p.isBelowPoints())) {
+					this.voted = [];
+					this.yesVotes = [];
+					this.log('Reshuffling... (by voting)');
+					this.reshuffle(); // reshuffle once more
+					this.checkReshuffle(); // check again
+				} else {
+					this.turn = this.players.map(p => p.hasThreeDiamonds()).indexOf(true);
+					this.broadcast(`${this.players[this.turn].username} starts.`)
+					this.currentPlayerTurn(); // start game
+				}
 			}
 		}
 	}
