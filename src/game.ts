@@ -88,17 +88,18 @@ export class Game {
 	start(usr: User) {
 		this.log('Game started');
 		this.addPlayer(usr);
-		this.message(this.chatId, `Game created! 1/${MAX_PLAYERS}\n- ${usr.username}`, {
-			reply_markup: { inline_keyboard: [[{ text: 'Join', callback_data: 'join_game' }]] }
+		this.message(this.chatId, `Game created! 1/${MAX_PLAYERS}\n- ${usr.username}\n\nClick \'Join\' and send a pm to the bot if this is your first time.`, {
+			reply_markup: { inline_keyboard: [[{ text: 'Join', callback_data: 'join_game', url: 'https://t.me/wholesome402_bot' }]] }
 		});
 	}
 
 	async join(usr: User, msg: Message) {
 		const opts = { chat_id: this.chatId, message_id: msg.message_id };
 		if (this.addPlayer(usr)) {
-			await this.bot.editMessageText(`${msg.text?.substring(0, 14)}${this.playerCount}${msg.text?.substring(14 + 1)}\n- ${usr.username}`, opts);
+			console.log("here");
+			this.bot.editMessageText(`Game created! ${this.playerCount}/${MAX_PLAYERS}${this.players.reduce((a, p) => a + `\n- ${p.username}\n\nClick \'Join\' and send a pm to the bot if this is your first time.`, '')}`, opts);
 			if (!this.isFull()) {
-				await this.bot.editMessageReplyMarkup({ inline_keyboard: [[{ text: 'Join', callback_data: 'join_game' }]] }, opts); // options are removed unless readded
+				await this.bot.editMessageReplyMarkup({ inline_keyboard: [[{ text: 'Join', callback_data: 'join_game', url: 'https://t.me/wholesome402_bot' }]] }, opts); // options are removed unless readded
 			}
 		}
 		if (this.isFull()) {
@@ -156,12 +157,17 @@ export class Game {
 		pingMsg += player.showHand();
 		this.message(player.userId, pingMsg, {
 			reply_markup: {
+				is_persistent: true,
+				resize_keyboard: true,
 				keyboard: [
-					[{ text: "1" }, { text: "2" }, { text: "3" }],
-					[{ text: "4" }, { text: "5" }, { text: "6" }],
-					[{ text: "7" }, { text: "8" }, { text: "9" }],
-					[{ text: "10" }, { text: "11" }, { text: "12" }],
-					[{ text: "13" }, { text: "play" }, { text: "pass" }]
+					// [{ text: "1" }, { text: "2" }, { text: "3" }],
+					// [{ text: "4" }, { text: "5" }, { text: "6" }],
+					// [{ text: "7" }, { text: "8" }, { text: "9" }],
+					// [{ text: "10" }, { text: "11" }, { text: "12" }],
+					// [{ text: "13" }, { text: "play" }, { text: "pass" }]					
+					[{ text: "1" }, { text: "2" }, { text: "3" }, { text: "4" }, { text: "5" }],
+					[{ text: "6" }, { text: "7" }, { text: "8" }, { text: "9" }, { text: "10" }],
+					[{ text: "11" }, { text: "12" }, { text: "13" }, { text: "play" }, { text: "pass" }]
 				]
 			}
 		});
