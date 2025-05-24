@@ -270,6 +270,17 @@ export class Game {
 		this.nextTurn();
 	}
 
+	lastPlayMsgs: { [chatId: number]: Promise<number> } = {};
+
+	async updatePlayMsg(text: string) {
+		this.log("Update message");
+		for (const [chatId, msgId] of Object.entries(this.lastPlayMsgs)) {
+			this.bot.deleteMessage(chatId, await msgId); // delete old message
+		}
+		const ids = [this.chatId].concat(this.playerIds);
+		ids.forEach(id => this.bot.sendMessage(id, text).then(m => m.message_id));
+	}
+
 	play(usr: User, cards: string[] | undefined) {
 		if (cards === undefined) {
 			this.message(usr.id, "Choose something to play");
@@ -297,7 +308,7 @@ export class Game {
 			} else {
 				this.high = resultMsg;
 				this.currRoundType = resultMsg.getRoundType();
-				this.broadcast(`${player.username} played ${resultMsg}`);
+				this.updatePlayMsg(`${player.username} played ${resultMsg}`);
 				this.nextTurn();
 			}
 
