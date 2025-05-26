@@ -8,7 +8,7 @@ const THREE = 0;
 const FOUR = 1;
 const FIVE = 2;
 const SIX = 3;
-const SET_TYPES = ['Straight', 'Flush', 'Full House', 'Four of a Kind', 'Straight Flush'];
+const SET_TYPES = ['Invalid', 'Straight', 'Flush', 'Full House', 'Four of a Kind', 'Straight Flush'];
 
 export class CardSet extends Combination {
 	card1: Card;
