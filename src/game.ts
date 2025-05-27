@@ -260,10 +260,10 @@ export class Game {
 			this.message(player.userId, "It is not your turn.")
 			return;
 		}
-		this.broadcast(`${player.username} passed`);
+		this.updatePlayMsg(`${player.username} passed`);
 		this.passCount++;
 		if (this.passCount >= (MAX_PLAYERS - this.endCount)) {
-			this.broadcast(`Resetting playing field.`);
+			// this.broadcast(`Resetting playing field.`);
 			this.reset();
 			this.passCount = 0;
 		}
@@ -299,7 +299,7 @@ export class Game {
 				this.currRoundType,
 				this.high)
 
-			if (player.getCardCount() == 1) {
+			if (player.getCardCount() == 1) { // only after move is considered valid
 				this.broadcast(`${player.username} has one card remaining.`);
 			}
 
