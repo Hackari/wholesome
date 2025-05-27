@@ -96,13 +96,13 @@ export class Game {
 	async join(usr: User, msg: Message) {
 		const opts = { chat_id: this.chatId, message_id: msg.message_id };
 		if (this.addPlayer(usr)) {
-			console.log("here");
-			this.bot.editMessageText(`Game created! ${this.playerCount}/${MAX_PLAYERS}${this.players.reduce((a, p) => a + `\n- ${p.username}\n\nClick \'Join\'.\nIf this is your first time, send a pm to the bot`, '')}`, opts);
+			await this.bot.editMessageText(`Game created! ${this.playerCount}/${MAX_PLAYERS}${this.players.reduce((a, p) => a + `\n- ${p.username}`, '')}\n\nClick \'Join\'.\nIf this is your first time, send a pm to the bot.`, opts);
 			if (!this.isFull()) {
 				await this.bot.editMessageReplyMarkup({ inline_keyboard: [[{ text: 'Join', callback_data: 'join_game'}], [{text: 'Play', url: 'https://t.me/wholesome402_bot' }]] }, opts); // options are removed unless readded
 			}
 		}
 		if (this.isFull()) {
+			this.bot.editMessageReplyMarkup({ inline_keyboard: [[{ text: 'Play', url: 'https://t.me/wholesome402_bot' }]] }, opts);
 			this.message(this.chatId, 'All players found.\nStarting game...');
 			this.isActive = true;
 			this.checkReshuffle();
@@ -260,10 +260,10 @@ export class Game {
 			this.message(player.userId, "It is not your turn.")
 			return;
 		}
-		this.broadcast(`${player.username} passed`);
+		this.updatePlayMsg(`${player.username} passed`);
 		this.passCount++;
 		if (this.passCount >= (MAX_PLAYERS - this.endCount)) {
-			this.broadcast(`Resetting playing field.`);
+			// this.broadcast(`Resetting playing field.`);
 			this.reset();
 			this.passCount = 0;
 		}
@@ -278,7 +278,7 @@ export class Game {
 			this.bot.deleteMessage(chatId, await msgId); // delete old message
 		}
 		const ids = [this.chatId].concat(this.playerIds);
-		ids.forEach(id => this.bot.sendMessage(id, text).then(m => m.message_id));
+		ids.forEach(id => this.lastPlayMsgs[id] = this.bot.sendMessage(id, text).then(m => m.message_id));
 	}
 
 	play(usr: User, cards: string[] | undefined) {
@@ -299,7 +299,7 @@ export class Game {
 				this.currRoundType,
 				this.high)
 
-			if (player.getCardCount() == 1) {
+			if (player.getCardCount() == 1) { // only after move is considered valid
 				this.broadcast(`${player.username} has one card remaining.`);
 			}
 
