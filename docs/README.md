@@ -68,7 +68,8 @@ Ranked from lowest to highest:
 ### 1. **Straight**
 - 5 consecutive cards, different suits
 - Value = highest card
-- Exception: `2-3-4-5-6` is **lower** than `3-4-5-6-7` and judged by the **6's suit**
+- Exception: `A-2-3-4-5` and `2-3-4-5-6` are **lower** than `3-4-5-6-7` and judged by the **5's suit** and **6's suit** respectively
+- Other broken straights, such as `Q-K-A-2-3`, are not allowed
 
 ### 2. **Flush**
 - 5 cards of the same suit, not in sequence
@@ -76,7 +77,7 @@ Ranked from lowest to highest:
 
 ### 3. **Full House**
 - 3-of-a-kind + pair
-- Value determined by the rand of the 3-of-a-kind
+- Value determined by the rank of the 3-of-a-kind
 
 ### 4. **Four of a Kind**
 - 4-of-a-kind + card
@@ -84,11 +85,13 @@ Ranked from lowest to highest:
 
 ### 5. **Straight Flush**
 - 5 consecutive cards of the same suit, straight and flush
-- Value determined by the **suit**
+- Follows the same straight exceptions and broken-straight restrictions
+- Value = suit first, then highest card
 
 ### 6. **Royal Flush**
 - Must be exactly: `10-J-Q-K-A` of same suit
 - Always ranked higher than any other straight flush
+- Value = suit, when competing against another royal flush
 
 ---
 
