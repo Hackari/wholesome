@@ -1,3 +1,5 @@
+<img src="../assets/wholesome-text.png" alt="Wholesome" width="100%">
+
 # Lawrence's Big 2 (Dai Di) Ruleset
 
 ## Bot Setup
