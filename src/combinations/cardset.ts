@@ -8,7 +8,11 @@ const THREE = 0;
 const FOUR = 1;
 const FIVE = 2;
 const SIX = 3;
-const SET_TYPES = ['Invalid', 'Straight', 'Flush', 'Full House', 'Four of a Kind', 'Straight Flush'];
+const TEN = 7;
+const KING = 10;
+const SET_TYPES = ['Invalid', 'Straight', 'Flush', 'Full House', 'Four of a Kind', 'Straight Flush', 'Royal Flush'];
+const SET_WEIGHT = 100;
+const RANKS_PER_SUIT = 13;
 
 export class CardSet extends Combination {
 	card1: Card;
@@ -20,29 +24,49 @@ export class CardSet extends Combination {
 
 	constructor(cards: Card[]) {
 		super();
-		cards.sort(Card.compareByValueThenSuit);
-		this.card1 = cards[0];
-		this.card2 = cards[1];
-		this.card3 = cards[2];
-		this.card4 = cards[3];
-		this.card5 = cards[4];
+		const sorted = [...cards].sort(Card.compareByValueThenSuit);
+		this.card1 = sorted[0];
+		this.card2 = sorted[1];
+		this.card3 = sorted[2];
+		this.card4 = sorted[3];
+		this.card5 = sorted[4];
 
-		if (this.isFourOfAKind()) {
+		const flushWeight = this.getFlushWeight();
+		const straightWeight = this.getStraightWeight();
+		if (flushWeight !== undefined && this.isRoyal()) {
+			this.setType = SetType.ROYAL_FLUSH;
+			this.weight = this.getSetWeight(this.setType, this.card1.suit);
+			return;
+		}
+		if (flushWeight !== undefined && straightWeight !== undefined) {
+			this.setType = SetType.STRAIGHT_FLUSH;
+			this.weight = this.getSetWeight(this.setType, this.card1.suit * RANKS_PER_SUIT + this.getStraightHighRank());
+			return;
+		}
+
+		const fourOfAKindWeight = this.getFourOfAKindWeight();
+		if (fourOfAKindWeight !== undefined) {
 			this.setType = SetType.FOUR_OF_KIND;
+			this.weight = this.getSetWeight(this.setType, fourOfAKindWeight);
+			return;
 		}
-		if (this.isFullHouse()) {
+
+		const fullHouseWeight = this.getFullHouseWeight();
+		if (fullHouseWeight !== undefined) {
 			this.setType = SetType.FULL_HOUSE;
+			this.weight = this.getSetWeight(this.setType, fullHouseWeight);
+			return;
 		}
-		if (this.isFlush()) {
-			if (this.isStraight()) {
-				this.setType = SetType.STRAIGHT_FLUSH;
-			} else {
-				this.setType = SetType.FLUSH;
-			}
-		} else if (this.isStraight()) {
+
+		if (flushWeight !== undefined) {
+			this.setType = SetType.FLUSH;
+			this.weight = this.getSetWeight(this.setType, flushWeight);
+			return;
+		}
+		if (straightWeight !== undefined) {
 			this.setType = SetType.STRAIGHT;
+			this.weight = this.getSetWeight(this.setType, straightWeight);
 		}
-		this.weight += this.setType * 100;
 	}
 
 	static genSets(hand: Card[]) {
@@ -67,6 +91,10 @@ export class CardSet extends Combination {
 	}
 
 	isFlush() {
+		return this.getFlushWeight() !== undefined;
+	}
+
+	private getFlushWeight() {
 		const suit = this.card1.suit;
 		if (
 			this.card2.suit === suit &&
@@ -74,14 +102,16 @@ export class CardSet extends Combination {
 			this.card4.suit === suit &&
 			this.card5.suit === suit
 		) {
-			this.weight = this.card5.number;
-			return true
+			return suit * RANKS_PER_SUIT + this.card5.rank;
 		}
-		return false;
+		return undefined;
 	}
 
 	isStraight() {
-		// weird rule of comparing by overlap is impractical to implement right now
+		return this.getStraightWeight() !== undefined;
+	}
+
+	private getStraightWeight() {
 		const v1 = this.card1.rank;
 		const v2 = this.card2.rank;
 		const v3 = this.card3.rank;
@@ -89,25 +119,26 @@ export class CardSet extends Combination {
 		const v5 = this.card5.rank;
 
 		if (v2 === v1 + 1 && v3 === v2 + 1 && v4 === v3 + 1 && v5 === v4 + 1) {
-			this.weight = this.card5.number; // rank then suit 
-			return true;
+			return this.card5.number;
 		}
 		if (v5 === TWO) {
 			// special case: A 2 3 4 5
 			if (v4 == ACE && v1 == THREE && v2 == FOUR && v3 == FIVE) {
-				this.weight = this.card3.number;
-				return true;
+				return this.card3.number;
 			}
 			// special case: 2 3 4 5 6
 			if (v1 == THREE && v2 == FOUR && v3 == FIVE && v4 == SIX) {
-				this.weight = this.card4.number;
-				return true;
+				return this.card4.number;
 			}
 		}
-		return false
+		return undefined;
 	}
 
 	isFullHouse() {
+		return this.getFullHouseWeight() !== undefined;
+	}
+
+	private getFullHouseWeight() {
 		const v1 = this.card1.rank;
 		const v2 = this.card2.rank;
 		const v3 = this.card3.rank;
@@ -115,31 +146,53 @@ export class CardSet extends Combination {
 		const v5 = this.card5.rank;
 
 		if ((v1 === v3) && (v4 === v5)) {
-			this.weight = v1;
-			return true;
+			return v1;
 		}
 		if ((v1 === v2) && (v3 === v5)) {
-			this.weight = v5;
-			return true;
+			return v5;
 		}
-		return false;
+		return undefined;
 	}
 
 	isFourOfAKind() {
+		return this.getFourOfAKindWeight() !== undefined;
+	}
+
+	private getFourOfAKindWeight() {
 		const v1 = this.card1.rank;
 		const v2 = this.card2.rank;
 		const v4 = this.card4.rank;
 		const v5 = this.card5.rank;
 
 		if (v1 === v4) {
-			this.weight = v1;
-			return true;
+			return v1;
 		}
 		if (v2 === v5) {
-			this.weight = v5;
-			return true;
+			return v5;
 		}
-		return false;
+		return undefined;
+	}
+
+	private isRoyal() {
+		return this.card1.rank === TEN &&
+			this.card2.rank === TEN + 1 &&
+			this.card3.rank === TEN + 2 &&
+			this.card4.rank === KING &&
+			this.card5.rank === ACE;
+	}
+
+	private getStraightHighRank() {
+		if (this.card5.rank === TWO && this.card4.rank === ACE) {
+			return FIVE;
+		}
+		if (this.card5.rank === TWO) {
+			return SIX;
+		}
+		return this.card5.rank;
+	}
+
+	private getSetWeight(setType: SetType, value: number) {
+		return setType * SET_WEIGHT + value;
 	}
 
 	toString() {

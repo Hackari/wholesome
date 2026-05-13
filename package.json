@@ -2,7 +2,8 @@
   "scripts": {
     "start": "node dist/bot.js",
     "dev": "tsc -w & node --watch dist/bot.js",
-    "build": "tsc -skipLibCheck"
+    "build": "tsc -skipLibCheck",
+    "test": "tsc -p tsconfig.test.json && node node_modules/.cache/wholesome-tests/tests/card-combinations.test.js"
   },
   "dependencies": {
     "node-telegram-bot-api": "^0.66.0",
